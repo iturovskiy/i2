@@ -12,7 +12,6 @@ class testLexer:
         'bool' : 'BOOL',
         'int' : 'INT',
         'short' : 'SHORT',
-        #'short int' : 'SHORT',
         'vector' : 'VECTOR',
         'if': 'IF',
         'then': 'THEN',
@@ -34,13 +33,14 @@ class testLexer:
         'move':'MOVE',
         'right' : 'RIGHT',
         'left' : 'LEFT',
-        'sizeof': 'SIZEOF',  #######
+
+        'sizeof': 'SIZEOF'
     }
 
     # токены
     tokens = list(reserved.values()) + [
         'ID', 'NUM', 'LT', 'GT', 'LE', 'GE',
-        'LPAREN', 'RPAREN', 'LSBRACKET', 'RSBRACKET', #'LBRACE', 'RBRACE',
+        'LPAREN', 'RPAREN', 'LSBRACKET', 'RSBRACKET',
         'ENDL', 'NEWLINE', 'COMMENT'
     ]
 
@@ -51,8 +51,6 @@ class testLexer:
     t_RPAREN = r'\)'
     t_LSBRACKET = r'\['
     t_RSBRACKET = r'\]'
-    #t_LBRACE = r'\{'    #   begin
-    #t_RBRACE = r'\}'    #   end
     t_LT = r'<'
     t_LE = r'<='
     t_GT = r'>'
@@ -68,14 +66,17 @@ class testLexer:
             t.type = 'SHORT'
         return t
 
-    def t_ID(self, t): # добавить проверку для t.type?
+    def t_ID(self, t):
         r'[A-Za-z][A-Za-z0-9]*'
         if t.value in self.reserved:
             if (t.value == 'true' or t.value =='false' or t.value == 'undefined'):
                 t.type = 'BOOL'
                 return t
             t.type = self.reserved[t.value]
-        return t
+            return t
+        elif str(t.value).lower() in self.reserved:
+            print('Illegal ID %s' %t.value)
+
 
     def t_NEWLINE(self, t):
         r'\n'
@@ -86,11 +87,11 @@ class testLexer:
         print("Illegal character %s" % t.value[0])
         t.lexer.skip(1)
 
-    # Build the lexer ##########################################
+    # Построение лексера
     def build(self, **kwargs):
         self.lexer = lex.lex(module=self, **kwargs)
 
-    # Test it output
+    # тестирование
     def test(self, data):
         self.lexer.input(data)
         while True:
@@ -103,10 +104,10 @@ class testLexer:
 if __name__ == '__main__':
 
     m = testLexer()
-    m.build()  # Build the lexer
+    m.build()
 
     m.test("AD set 1300 add 4; // good")
     print('')
     m.test("short A set 4;")
     print('')
-    m.test("short 1A;")
+    m.test("short SHORT;")
