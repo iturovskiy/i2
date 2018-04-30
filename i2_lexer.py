@@ -3,8 +3,8 @@ import ply.lex as lex
 MAX_SHORT = 2**8
 MAX_INT = 2**12
 
-# зарезервированные слова
-reserved = [
+# кортеж зарезервированных слов
+reserved = (
     'smaller',          # cmpare
     'larger',           # cmpare
     'false',            # bool
@@ -12,7 +12,7 @@ reserved = [
     'undefined',        # bool
     'right',            # direction
     'left'              # direction
-]
+)
 
 # словарь ключевых слов - токены
 keywords = {
@@ -44,12 +44,12 @@ keywords = {
     'print' : 'PRINT'
 }
 
-# токены
-tokens = list(keywords.values()) + [
+# кортеж токенов
+tokens = tuple(keywords.values()) + (
     'ID', 'NUM', 'CMPARE', 'DIRECTION',
     'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET', 'LBRACE', 'RBRACE', 'PIPE',
     'ENDL', 'NEWLINE', 'COMMENT'
-]
+)
 
 
 t_ignore = ' \t'
@@ -62,6 +62,7 @@ t_LBRACKET = r'\['
 t_RBRACKET = r'\]'
 t_LBRACE = r'\{'
 t_RBRACE = r'\}'
+#t_STRING = r'\".*?\"'
 t_ENDL = r';'
 
 
@@ -121,9 +122,9 @@ def test(lexer, data):
 
 
 if __name__ == '__main__':
-	lexer = lex.lex()
-	test(lexer, '''AD set 1300 add 4; // good\n"
-		        "move right;''')
+	lexer = lex.lex() # (module=tokrules)
+	test(lexer, '''AD set 1300 add 4; // good\n
+		        move right;''')
 	print('')
 	test(lexer, "short A set 4;")
 	print('')

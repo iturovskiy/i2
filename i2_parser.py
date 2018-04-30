@@ -1,4 +1,10 @@
 import ply.yacc as yacc
-import i2_lexer as toks
+import i2_lexer as lexer
 
-parser = yacc.yacc(module=toks)
+tokens = lexer.tokens
+
+precedence = (
+    ('left', 'ADD', 'SUB')
+)
+
+parser = yacc.yacc()
