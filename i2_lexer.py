@@ -1,114 +1,130 @@
 import ply.lex as lex
 
-MAX_SHORT = 1024
+MAX_SHORT = 2**8
+MAX_INT = 2**12
 
-class testLexer:
+# зарезервированные слова
+reserved = [
+    'smaller',          # cmpare
+    'larger',           # cmpare
+    'false',            # bool
+    'true',             # bool
+    'undefined',        # bool
+    'right',            # direction
+    'left'              # direction
+]
 
-    # словарь зарезервированных слов
-    keywords = {
-        'false' : 'FALSE',
-        'true' : 'TRUE',
-        'undefined' : 'UNDEFINED',
-        'bool' : 'BOOL',
-        'int' : 'INT',
-        'short' : 'SHORT',
-        'vector' : 'VECTOR',
-        'if': 'IF',
-        'then': 'THEN',
-        'else': 'ELSE',
-        'while': 'WHILE',
-        'set' : 'SET',
-        'add' : 'ADD',
-        'sub' : 'SUB',
-        'not' : 'NOT',
-        'or' : 'OR',
-        'and' : 'AND',
-        'function' : 'FUNCTION',
-        'return' : 'RETURN',
-        'do' : 'DO',
-        'begin' : 'BEGIN',
-        'end' : 'END',
-        'vector' : 'VECTOR',
-        'lms':'LMS',
-        'move':'MOVE',
-        'right' : 'RIGHT',
-        'left' : 'LEFT',
+# словарь ключевых слов - токены
+keywords = {
+    'bool' : 'BOOL',
+    'int' : 'INT',
+    'short' : 'SHORT',
+    'vector' : 'VECTOR',
 
-        'sizeof': 'SIZEOF'
-    }
+    'set' : 'SET',
+    'add' : 'ADD',
+    'sub' : 'SUB',
+    'not' : 'NOT',
+    'or' : 'OR',
+    'and' : 'AND',
 
-    # токены
-    tokens = list(keywords.values()) + [
-        'ID', 'NUM', 'LT', 'GT', 'LE', 'GE',
-        'LPAREN', 'RPAREN', 'LSBRACKET', 'RSBRACKET',
-        'ENDL', 'NEWLINE', 'COMMENT'
-    ]
+    'function' : 'FUNCTION',
+    'return' : 'RETURN',
+    'if': 'IF',
+    'then': 'THEN',
+    'else': 'ELSE',
+    'while': 'WHILE',
+    'do' : 'DO',
+    'begin' : 'BEGIN',
+    'end' : 'END',
 
-    t_ignore = ' \t'
-    t_ignore_COMMENT = r'\/\/.*'
+    'lms':'LMS',
+    'move':'MOVE',
+    'sizeof': 'SIZEOF',
+    'print' : 'PRINT'
+}
 
-    t_LPAREN = r'\('
-    t_RPAREN = r'\)'
-    t_LSBRACKET = r'\['
-    t_RSBRACKET = r'\]'
-    t_LT = r'<'
-    t_LE = r'<='
-    t_GT = r'>'
-    t_GE = r'>='
-    t_ENDL = r';'
+# токены
+tokens = list(keywords.values()) + [
+    'ID', 'NUM', 'CMPARE', 'DIRECTION',
+    'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET', 'LBRACE', 'RBRACE', 'PIPE',
+    'ENDL', 'NEWLINE', 'COMMENT'
+]
 
-    def t_NUM(self, t):
-        r'\d+'
-        t.value = int(t.value)
-        if t.value > MAX_SHORT:
+
+t_ignore = ' \t'
+t_ignore_COMMENT = r'\/\/.*'
+
+t_PIPE = r'\|'
+t_LPAREN = r'\('
+t_RPAREN = r'\)'
+t_LBRACKET = r'\['
+t_RBRACKET = r'\]'
+t_LBRACE = r'\{'
+t_RBRACE = r'\}'
+t_ENDL = r';'
+
+
+def t_NUM(t):
+    r'\d+'
+    t.value = int(t.value)
+
+    if abs(t.value) < MAX_INT:
+        if abs(t.value) > MAX_SHORT:
             t.type = 'INT'
         else:
             t.type = 'SHORT'
         return t
-
-    def t_ID(self, t):
-        r'[A-Za-z][A-Za-z0-9]*'
-        if t.value in self.keywords:
-            if (t.value == 'true' or t.value =='false' or t.value == 'undefined'):
-                t.type = 'BOOL'
-                return t
-            t.type = self.keywords[t.value]
-            return t
-        elif str(t.value).lower() in self.keywords:
-            print('Illegal ID %s' %t.value)
+    else:
+        # error - как обработать?
+        pass
 
 
-    def t_NEWLINE(self, t):
-        r'\n'
-        t.lexer.lineno += 1
+def t_ID(t):
+    r'[A-Za-z][A-Za-z0-9]*'
+    if t.value in keywords:
+        t.type = keywords[t.value]
         return t
+    elif str(t.value).lower() in reserved:
+        if (str(t.value).lower() == reserved[2] or str(t.value).lower() == reserved[3]
+            or str(t.value).lower() == reserved[4]):
+            t.type = 'BOOL'
+        if (str(t.value).lower() == reserved[0] or str(t.value).lower() == reserved[1]):
+            t.type = 'CMPARE'
+        if (str(t.value).lower() == reserved[5] or str(t.value).lower() == reserved[6]):
+            t.type = 'DIRECTION'
+        return t
+    elif str(t.value).lower() in keywords:
+        # error
+        print('Illegal ID %s' %t.value)
 
-    def t_error(self, t):
-        print("Illegal character %s" % t.value[0])
-        t.lexer.skip(1)
 
-    # для тестирования
-    # Построение лексера
-    def build(self, **kwargs):
-        self.lexer = lex.lex(module=self, **kwargs)
+def t_NEWLINE(t):
+    r'\n'
+    t.lexer.lineno += 1
+    return t
 
-    # тестирование
-    def test(self, data):
-        self.lexer.input(data)
-        while True:
-            tok = self.lexer.token()
-            if not tok:
-                break
-            print(tok)
+
+def t_error(t):
+    print("Illegal character %s" % t.value[0])
+    t.lexer.skip(1)
+
+
+# тестер
+def test(lexer, data):
+    lexer.input(data)
+    while True:
+        tok = lexer.token()
+        if not tok:
+            break
+        print(tok)
 
 
 if __name__ == '__main__':
-
-    m = testLexer()
-    m.build()
-
-    m.test("AD set 1300 add 4; // good")
-    print('')
-    m.test("short A set 4;")
-    print('')
-    m.test("short SHORT;")
+	lexer = lex.lex()
+	test(lexer, '''AD set 1300 add 4; // good\n"
+		        "move right;''')
+	print('')
+	test(lexer, "short A set 4;")
+	print('')
+	test(lexer, "short SHORT;")
