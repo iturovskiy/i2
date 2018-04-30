@@ -5,7 +5,7 @@ MAX_SHORT = 1024
 class testLexer:
 
     # словарь зарезервированных слов
-    reserved = {
+    keywords = {
         'false' : 'FALSE',
         'true' : 'TRUE',
         'undefined' : 'UNDEFINED',
@@ -38,7 +38,7 @@ class testLexer:
     }
 
     # токены
-    tokens = list(reserved.values()) + [
+    tokens = list(keywords.values()) + [
         'ID', 'NUM', 'LT', 'GT', 'LE', 'GE',
         'LPAREN', 'RPAREN', 'LSBRACKET', 'RSBRACKET',
         'ENDL', 'NEWLINE', 'COMMENT'
@@ -68,13 +68,13 @@ class testLexer:
 
     def t_ID(self, t):
         r'[A-Za-z][A-Za-z0-9]*'
-        if t.value in self.reserved:
+        if t.value in self.keywords:
             if (t.value == 'true' or t.value =='false' or t.value == 'undefined'):
                 t.type = 'BOOL'
                 return t
-            t.type = self.reserved[t.value]
+            t.type = self.keywords[t.value]
             return t
-        elif str(t.value).lower() in self.reserved:
+        elif str(t.value).lower() in self.keywords:
             print('Illegal ID %s' %t.value)
 
 
@@ -87,6 +87,7 @@ class testLexer:
         print("Illegal character %s" % t.value[0])
         t.lexer.skip(1)
 
+    # для тестирования
     # Построение лексера
     def build(self, **kwargs):
         self.lexer = lex.lex(module=self, **kwargs)
