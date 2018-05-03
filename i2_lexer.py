@@ -109,8 +109,6 @@ def t_ID(t):
             t.type = 'BOOL'
         if (t.value == reserved[5] or t.value == reserved[6]):
             t.type = 'DIRECTION'
-        #if (t.value == reserved[7] or t.value == reserved[8] or t.value == reserved[9]):
-        #    t.type = 'VAR'
         return t
     elif (str(t.value).lower() in keywords or str(t.value).lower() in reserved):
         # error
