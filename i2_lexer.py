@@ -6,18 +6,13 @@ MAX_INT = 2**12
 
 # кортеж зарезервированных слов
 reserved = (
-    'smaller',          # cmpare
-    'larger',           # cmpare
-    'false',            # bool
-    'true',             # bool
-    'undefined',        # bool
+    'smaller',          # cmpr
+    'larger',           # cmpr
+    'false',            # bconst
+    'true',             # bconst
+    'undefined',        # bconst
     'right',            # direction
     'left'              # direction
-
-    #'int',              # var - точно ли?
-    #'short',            # var
-    #'bool',             # var
-    #'vector'            # var - что делать с vector of?
 )
 
 # словарь ключевых слов - токены
@@ -53,7 +48,7 @@ keywords = {
 
 # кортеж токенов
 tokens = tuple(keywords.values()) + (
-    'ID', 'CINT', 'CSHORT', 'CMPARE', 'DIRECTION',
+    'ID', 'ICONST', 'SCONST', 'BCONST', 'CMPR', 'DIRECTION',
     'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET', 'LBRACE', 'RBRACE', 'PIPE',
     'ENDL', 'NEWLINE', 'COMMENT'
 )
@@ -72,7 +67,7 @@ t_RBRACE = r'\}'
 t_ENDL = r';'
 
 
-def t_CINT(t):
+def t_ICONST(t):
     '(\-)?[1-9][0-9]*' # const int
     t.value = int(t.value)
     if abs(t.value) < MAX_INT:
@@ -82,17 +77,18 @@ def t_CINT(t):
         pass
 
 
-def t_CSHORT(t):
+def t_SCONST(t):
     r'(\-)?[S][1-9][0-9]*'
-    t.value = sub('[S]', '', t.value)
+    t.value = sub(r'S', '', t.value)
     t.value = int(t.value)
     if abs(t.value) < MAX_SHORT:
         return t
     elif (MAX_SHORT <= abs(t.value) and abs(t.value) < MAX_INT):
-        t.type = 'CINT'
+        t.type = 'ICONST'
         return t
     elif (abs(t.value) >= MAX_INT):
         # переполнение - ошибка
+        print('Illegal value - overflow')
         pass
 
 
@@ -104,15 +100,17 @@ def t_ID(t):
 
     elif t.value in reserved:
         if (t.value == reserved[0] or t.value == reserved[1]):
-            t.type = 'CMPARE'
+            t.type = 'CMPR'
         if (t.value == reserved[2] or t.value == reserved[3] or t.value == reserved[4]):
-            t.type = 'BOOL'
+            t.type = 'BCONST'
         if (t.value == reserved[5] or t.value == reserved[6]):
             t.type = 'DIRECTION'
         return t
     elif (str(t.value).lower() in keywords or str(t.value).lower() in reserved):
         # error
         print('Illegal ID %s' %t.value)
+    else:
+        return t
 
 
 def t_NEWLINE(t):
@@ -126,7 +124,6 @@ def t_error(t):
     t.lexer.skip(1)
 
 
-# тестер
 def test(lexer, data):
     lexer.input(data)
     while True:
@@ -134,15 +131,19 @@ def test(lexer, data):
         if not tok:
             break
         print(tok)
+        if tok.type == 'NEWLINE':
+            print()
 
 
 lexer = lex.lex()
 
 if __name__ == '__main__':
 	print()
-	test(lexer, '''int A set 1300 add 4; // good
-		        move right;''')
-	print()
-	test(lexer, "short A set -S5;")
-	print()
-	test(lexer, "short SHORT;")
+	test(lexer, '''
+	            int A set 1300 add 4; // good
+		        move right;
+		        bool DD set true;
+		        if DD then 
+		            A set S5;
+		        else
+		            A set 30;''')
