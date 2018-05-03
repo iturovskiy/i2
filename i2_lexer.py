@@ -95,20 +95,6 @@ def t_CSHORT(t):
         # переполнение - ошибка
         pass
 
-'''def t_NUM(t):
-    r'\d+'
-    t.value = int(t.value)
-
-    if abs(t.value) < MAX_INT:
-        if abs(t.value) > MAX_SHORT:
-            t.type = 'INT'
-        else:
-            t.type = 'SHORT'
-        return t
-    else:
-        # error - как обработать?
-        pass'''
-
 
 def t_ID(t):
     r'[A-Za-z][A-Za-z0-9]*'
@@ -152,11 +138,13 @@ def test(lexer, data):
         print(tok)
 
 
+lexer = lex.lex()
+
 if __name__ == '__main__':
-	lexer = lex.lex() # (module=tokrules)
+	print()
 	test(lexer, '''int A set 1300 add 4; // good
 		        move right;''')
-	print('')
+	print()
 	test(lexer, "short A set -S5;")
-	print('')
+	print()
 	test(lexer, "short SHORT;")
