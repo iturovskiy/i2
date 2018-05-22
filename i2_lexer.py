@@ -6,8 +6,6 @@ MAX_INT = 2**12
 
 # кортеж зарезервированных слов
 reserved = (
-    'smaller',          # cmpr
-    'larger',           # cmpr
     'false',            # bconst
     'true',             # bconst
     'undefined',        # bconst
@@ -17,6 +15,9 @@ reserved = (
 
 # словарь ключевых слов - токены
 keywords = {
+    'smaller' : 'SMALLER',
+    'larger' : 'LARGER',
+
     'set' : 'SET',
     'add' : 'ADD',
     'sub' : 'SUB',
@@ -48,9 +49,9 @@ keywords = {
 
 # кортеж токенов
 tokens = tuple(keywords.values()) + (
-    'ID', 'ICONST', 'SCONST', 'BCONST', 'CMPR', 'DIRECTION',
+    'ID', 'ICONST', 'SCONST', 'BCONST', 'DIRECTION',
     'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET', 'LBRACE', 'RBRACE', 'PIPE',
-    'ENDL', 'NEWLINE', 'COMMENT'
+    'ENDS', 'NEWLINE', 'COMMENT'
 )
 
 
@@ -64,7 +65,7 @@ t_LBRACKET = r'\['
 t_RBRACKET = r'\]'
 t_LBRACE = r'\{'
 t_RBRACE = r'\}'
-t_ENDL = r';'
+t_ENDS = r';'
 
 
 def t_ICONST(t):
@@ -99,11 +100,9 @@ def t_ID(t):
         return t
 
     elif t.value in reserved:
-        if (t.value == reserved[0] or t.value == reserved[1]):
-            t.type = 'CMPR'
-        if (t.value == reserved[2] or t.value == reserved[3] or t.value == reserved[4]):
+        if (t.value == reserved[0] or t.value == reserved[1] or t.value == reserved[2]):
             t.type = 'BCONST'
-        if (t.value == reserved[5] or t.value == reserved[6]):
+        if (t.value == reserved[3] or t.value == reserved[4]):
             t.type = 'DIRECTION'
         return t
     elif (str(t.value).lower() in keywords or str(t.value).lower() in reserved):
@@ -122,6 +121,9 @@ def t_NEWLINE(t):
 def t_error(t):
     print("Illegal character %s" % t.value[0])
     t.lexer.skip(1)
+
+
+######################################################################################################
 
 
 def test(lexer, data):
@@ -143,7 +145,7 @@ if __name__ == '__main__':
 	            int A set 1300 add 4; // good
 		        move right;
 		        bool DD set true;
-		        if DD then 
+		        if (pp|5 smaller) then 
 		            A set S5;
 		        else
 		            A set 30;''')
