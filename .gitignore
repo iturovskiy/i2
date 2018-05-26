@@ -1,2 +1,5 @@
 /.idea
 .idea
+parser.out
+.out
+/__pycache__

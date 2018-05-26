@@ -1,0 +1,17 @@
+// test
+// comment
+
+function work()
+begin
+    int A set 10;
+    short int C set s5;
+    do
+        begin
+            A set A add 2;
+            C set C sub 1;
+        end
+    while (C larger 0);
+    print(A);
+    print(C);
+    return 0;
+end;
