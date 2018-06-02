@@ -3,3 +3,4 @@
 parser.out
 .out
 /__pycache__
+/tests

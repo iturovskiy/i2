@@ -1,38 +1,28 @@
 import ply.yacc as yacc
-import i2_lexer as lexer
+import ply.lex  as lex
+import i2_lexer
 
-tokens = lexer.tokens
+tokens = i2_lexer.tokens
 
-precedence = (
-	('left', 'ADD', 'SUB')
-)
-
-
-# declaration of variable ?
 
 def p_program(p):
 	'''program : program func
 			   | func'''
-
 	if len(p) == 2 and p[1]:
 		p[0] = {}
-		line, stat = p[1]
-		p[0][line] = stat
+		p[0][p[1][1]] = p[1]
 	elif len(p) == 3:
 		p[0] = p[1]
 		if not p[0]:
 			p[0] = {}
 		if p[2]:
-			line, stat = p[2]
-			p[0][line] = stat
+			p[0][p[2][1]] = p[2]
 
 
 def p_func(p):
 	'''func : FUNCTION ID paramlist sentgroup ENDS'''
 	p[0] = ('FUNC', p[2], p[3], p[4])
 
-
-# что с error'ами делать то?
 
 def p_func_error(p):
 	'''func : FUNCTION ID error sentgroup
@@ -44,37 +34,44 @@ def p_func_error(p):
 def p_paramlist(p):
 	'''paramlist : LPAREN params RPAREN
 				 | LPAREN RPAREN'''
-	if (len(p) == 4):
+	if len(p) == 4:
 		p[0] = ('PARAMLIST', p[2])
 	else:
-		p[0] = ('PARAMLIST', '')
+		p[0] = ('PARAMLIST', None)
 
 
 def p_params(p):
 	'''params : params COMMA param
-			  | var'''
-	if (len(p) == 2):
-		p[0] = ('PARAMS', p[1])
+			  | param'''
+	if len(p) == 2:
+		p[0] = [p[1]]
 	else:
-		p[0] = ('PARAMS', p[1], p[3])
+		p[0] = p[1]
+		p[0].append(p[3])
 
 
 def p_param(p):
 	'''param : INT ID
 		     | SHORT ID
 		     | vect ID'''
-	p[0] = ('PARAM', p[1], p[2])
+	p[0] = (p[1], p[2])
 
 
-def p_vect(p):
+def p_vect_v(p):
 	'''vect : VECTOR OF
-			| vect SHORT
-			| vect INT
 	        | vect VECTOR OF'''
-	if (len(p) == 4):
-		p[0] = ('VECT', p[2], p[3])
+	if len(p) == 4:
+		p[0] = p[1]
+		p[0][1] += 1
 	else:
-		p[0] = ('VECT', p[1], p[2])
+		p[0] = ['VECT', 1]
+
+
+def p_vect_int(p):
+	'''vect : vect INT
+			| vect SHORT'''
+	p[0] = p[1]
+	p[0].append(p[2])
 
 
 def p_sentgroup(p):
@@ -85,123 +82,347 @@ def p_sentgroup(p):
 def p_sentencess(p):
 	'''sentencess : sentencess sentence
 				  | sentence'''
-	if (len(p) == 3):
-		p[0] = ('SENTENCES', p[1], p[2])
+	if len(p) == 3:
+		p[0] = p[1]
+		p[0].append(p[2])
 	else:
-		p[0] = ('SENTENCES', p[1])
+		p[0] = [p[1]]
 
 
 def p_sentence(p):
 	'''sentence : initvars ENDS
-				| cycle ENDS
-				| expr ENDS
-				| call ENDS
+				| cycle
+				| expression ENDS
+				| callstd
+				| callfunc ENDS
 				| ifcond'''
 	p[0] = ('SENTENCE', p[1])
 
 
-# do while
+def p_sentence_empty(p):
+	'''sentence : ENDS'''
+	p[0] = ('SENTENCE', None)
 
-def p_cycle(t):
-	'''cycle : DO sentgroup WHILE boolexp ENDS
-			 | DO sentence WHILE boolexp ENDS'''
+
+def p_cycle(p):
+	'''cycle : DO sentgroup WHILE expr ENDS
+			 | DO sentence WHILE expr ENDS'''
 	p[0] = ('DOWHILE', p[2], p[4])
 
 
 def p_initvars(p):
 	'''initvars : BOOL initbools
 				| INT initints
-				| SHORT initshorts
-				| vect initvect'''
-	p[0] = ('', p[1], p[2])
+				| shrt initints
+				| vect initvects'''
+	p[0] = ('INITVARS', p[1], p[2])
+
+
+def p_shrt(p):
+	'''shrt : SHORT INT
+			| SHORT'''
+	p[0] = p[1]
 
 
 def p_initbools(p):
-	'''inibools : ID
-	            | fullboolexp
-	            | initbools COMMA ID
-	            | initbools COMMA fullboolexp'''
-	if (len(p) == 2):
-		p[0] = ('BOOLEANS', p[1])
+	'''initbools : initbool
+	             | initbools COMMA initbool'''
+	if len(p) == 2:
+		p[0] = [p[1]]
 	else:
-		p[0] = ('BOOLEANS', p[1], p[3])
+		p[0] = p[1]
+		p[0].append(p[3])
+
+
+def p_initbool(p):
+	'''initbool : ID
+	            | ID SET expr'''
+	if len(p) == 2:
+		p[0] = ('BOOLEAN', p[1], 'undefined')
+	else:
+		p[0] = ('BOOLEAN', p[1], p[3])
 
 
 def p_initints(p):
-	'''initints : ID
-	            | fullintexp
-	            | initints COMMA ID
-	            | initints COMMA fullarithmexp'''
-	if (len(p) == 2):
-		p[0] = ('INTS', p[1])
+	'''initints : initint
+	            | initints COMMA initint'''
+	if len(p) == 2:
+		p[0] = [p[1]]
+	else:
+		p[0] = p[1]
+		p[0].append(p[3])
+
+
+def p_initint(p):
+	'''initint : ID
+	           | ID SET expr'''
+	if len(p) == 2:
+		p[0] = ('INTS', p[1], None)
 	else:
 		p[0] = ('INTS', p[1], p[3])
 
 
-def p_initshorts(p):
-	'''initshorts : ID
-	              | fullshortexp
-	              | initshorts COMMA ID
-	              | initshorts COMMA fullarithmexp'''
-	if (len(p) == 2):
-		p[0] = ('SHORTS', p[1])
+def p_initvects(p):
+	'''initvects : initvect'''
+	p[0] = [p[1]]
+
+
+def p_initvects_more(p):
+	'''initvects : initvects initvect'''
+	if type(p[1]) is not list:
+	 	p[0] = [p[1]]
 	else:
-		p[0] = ('SHORTS', p[1], p[3])
+		p[0] = p[1]
+	p[0].append(p[2])
+
+
+def p_initvect_a(p):
+	'''initvect : ID dimensions COMMA'''
+	p[0] = ('INIVECT', p[1], p[2], None, None)
+
+
+def p_initvect_b(p):
+	'''initvect : ID SET vectvaluesf
+				 | ID dimensions SET vectvaluesf'''
+	if len(p) == 4:
+		p[0] = ('INIVECT', p[1], None, p[2], p[3])
+	else:
+		p[0] = ('INIVECT', p[1], p[2], p[3], p[4])
 
 
 def p_initvect(p):
 	'''initvect : ID dimensions
-				| ID dimensions SET vectvalues
-				| initvect COMMA ID dimensions
-				| initvect COMMA ID dimensions SET vectvalues'''
-	pass
+				| ID SET vectvalues
+				| ID dimensions SET vectvalues'''
+	if len(p) == 3:
+		p[0] = ('INIVECT', p[1], p[2], None, None)
+	elif len(p) == 4:
+		p[0] = ('INIVECT', p[1], None, p[2], p[3])
+	else:
+		p[0] = ('INIVECT', p[1], p[2], p[3], p[4])
 
 
 def p_dimensions(p):
-	'''dimensions : LBRACKET arithmexp RBRACKET
-				  | dimensions LBRACKET arithmexp RBRACKET'''
-	pass
+	'''dimensions : dimension
+				  | dimensions dimension'''
+	if (len(p) == 2):
+		p[0] = [p[1]]
+	else:
+		p[0] = p[1]
+		p[0].append(p[2])
 
 
-# vector of int A[5] set { 1, 2, 3, 4, 5};
-
-def p_vectvalues(p):
-	'''vectvalues : LBRACE
-				  | vectvalues RBRACE
-				  ...
-				  | '''
-	pass
+def p_dimension(p):
+	'''dimension : LBRACKET expr RBRACKET'''
+	p[0] = p[2]
 
 
-def p_ifcond(p):
-	'''cond : IF boolexp sentence
-			| IF boolexp sentgroup ENDS
-			| IF boolexp sentence ELSE sentence
-			| IF boolexp sentence ELSE sentgroup ENDS
-			| IF boolexp sentgroup ELSE sentence
-			| IF boolexp sentgroup ELSE sentgroup ENDS '''
-	pass
+def p_vectvaluesf(p):
+	'''vectvaluesf : vectvalues COMMA'''
+	p[0] = p[1]
+
+
+def p_vectvalues_coma(p):
+	'''vectvalues : vectvalues COMMA vectvalues'''
+	p[0] = [p[1]]
+	p[0].append(p[3])
+
+
+def p_vectvalues_vect(p):
+	'''vectvalues : LBRACE vectvalue RBRACE
+				  | LBRACE vectvalues RBRACE'''
+	p[0] = p[2]
+
+
+def p_vectvalue(p):
+	'''vectvalue : expr
+				 | vectvalue COMMA expr'''
+	if (len(p) == 2):
+		p[0] = [p[1]]
+	else:
+		p[0] = p[1]
+		p[0].append(p[3])
+
+
+def p_callstd_move(p):
+	'''callstd : MOVE
+			   | RIGHT ENDS
+			   | LEFT ENDS'''
+	p[0] = ('MOV', p[1])
+
+
+def p_callstd_lbs(p):
+	'''callstd : LMS ENDS'''
+	p[0] = p[1]
+
+
+def p_callstd_return(p):
+	'''callstd : RETURN expr ENDS '''
+	p[0] = ('RETURN', p[2])
+
+
+def p_ifcond_simple(p):
+	'''ifcond : IF expr THEN sentence
+			  | IF expr THEN sentgroup ENDS '''
+	p[0] = ('IFCOND', p[2], p[4], None)
+
+
+def p_ifcond_complex(p):
+	'''ifcond : IF expr THEN sentence ELSE sentence
+			  | IF expr THEN sentence ELSE sentgroup ENDS
+			  | IF expr THEN sentgroup ELSE sentence
+			  | IF expr THEN sentgroup ELSE sentgroup ENDS'''
+	p[0] = ('IFCOND', p[2], p[4], p[6])
+
+
+def p_vectelem(p):
+	'''vectelem : ID dimensions'''
+	p[0] = ('VECTEL', p[1], p[2])
+
+
+def p_num_int(p):
+	'''num : ICONST'''
+	p[0] = ('INTG', p[1])
+
+def p_num_sh(p):
+	'''num : SCONST'''
+	p[0] = ('SHRT', p[1])
+
+
+def p_bool(p):
+	'''bool : BCONST'''
+	p[0] = ('BOOL', p[1])
+
+
+def p_expression(p):
+	'''expression : ID SET expr
+				  | vectelem SET expr'''
+	p[0] = ('EXPRESSION', p[1], p[2], p[3])
+
+
+def p_expr_simple(p):
+	'''expr : num
+			| bool
+			| ID
+			| callfunc
+			| vectelem
+			| LPAREN expr RPAREN'''
+	if len(p) == 2:
+		p[0] = p[1]
+	else:
+		p[0] = p[2]
+
+
+def p_expr_arithm(p):
+	'''expr : expr ADD expr
+			| expr SUB expr'''
+	p[0] = ('ARMEXP', p[1], p[2], p[3])
+
+
+def p_expr_logic_0(p):
+	'''expr : expr SMALLER expr
+			| expr LARGER expr'''
+	p[0] = ('LOGEXP', p[1], p[2], p[3])
+
+
+def p_expr_logic_1(p):
+	'''expr : expr AND expr
+			| expr OR expr'''
+	p[0] = ('LOGEXP', p[1], p[2], p[3])
+
+
+def p_expr_logic_2(p):
+	'''expr : expr nand expr
+			| expr nor expr'''
+	p[0] = ('LOGEXP', p[1], p[2], p[3])
+
+
+def p_nand(p):
+	'''nand : NOT AND'''
+	p[0] = 'nand'
+
+
+def p_nor(p):
+	'''nor : NOT OR'''
+	p[0] = 'nor'
+
+
+def p_callfunc(p):
+	'''callfunc : ID callfparams'''
+	p[0] = ('CALLFUNC', p[1], p[2])
+
+
+def p_callfunc_sizeof(p):
+	'''callfunc : SIZEOF LPAREN INT RPAREN
+				| SIZEOF LPAREN SHORT RPAREN
+				| SIZEOF LPAREN BOOL RPAREN
+				| SIZEOF LPAREN num RPAREN
+				| SIZEOF LPAREN vectelem RPAREN
+				| SIZEOF LPAREN ID RPAREN'''
+	p[0] = ('CALLFUNC', p[1], [3])
+
+
+def p_callfparams(p):
+	'''callfparams : LPAREN RPAREN
+				   | LPAREN callfparam RPAREN'''
+	if len(p) == 4:
+		p[0] = p[2]
+	else:
+		p[0] = None
+
+
+def p_callfparam(p):
+	'''callfparam : ID
+				  | expr
+				  | callfparam ID
+				  | callfparam expr'''
+	if len(p) == 2:
+		p[0] = [p[1]]
+	else:
+		p[0] = p[1]
+		p[0].append(p[2])
 
 
 def p_error(t):
-	print("Syntax error at '%s' at line '%s' at pos '%s'" % (
-		t.value, t.lexer.lineno, t.lexer.lexpos - t.lexer.lexposition))
+	print("Syntax error at line '%s', token = '%s', value = '%s'" % (t.lexer.lineno, t.type, t.value))
 
 
 parser = yacc.yacc()
 
 
-# добавить NEWLINE ???
+if __name__ == '__main__':
 
-# fullboolexp -> boolexp
-# fullarithmexp -> arithmexp
-# expr -> fullboolexp | fullarithmexp
-# calls
-# stdfunc: move, lbs, print
+	def lexx(lexer, data):
+		lexer.input(data)
+		while True:
+			tok = lexer.token()
+			if not tok:
+				break
 
-def parse(data, debug=0):
-	parser.error = 0
-	p = parser.parse(data, debug=debug)
-	if parser.error:
-		return None
-	return p
+
+	def parse(data, debug=0):
+		parser.error = 0
+		p = parser.parse(data, debug=debug)#True)
+		if parser.error:
+			return None
+		return p
+
+
+	lexer = lex.lex(module=i2_lexer)
+
+	print()
+	filename = 'simple.i2'
+	data = open(filename).read()
+	lexx(lexer, data)
+	print()
+	prog = parse(data)
+	if not prog:
+	 	print('not prog')
+	else:
+		f = open('parseresult.out', 'w')
+		for key in prog:
+			f.write("('" + str(prog[key][0]) + "', '" + str(prog[key][1]) + "', " + str(prog[key][2]) + ", [\n")
+			for sentence in prog[key][3][1]:
+				f.write(str(sentence) + '\n')
+			f.write('])\n\n')
+		f.close()
