@@ -1,6 +1,5 @@
 function work()
 begin
-    vector of vector of int D[2][2], C[3][3] set {{1,2,3},{4,5,6}}, A set {{1,2,3},{4,5,6}};
-    int A set 3, B set 4, C set 2 add 5 sub 1, D, E set 0;
-    short int A set s3, B, C set s4 add s5;
+    bool C set (5 smaller 2) larger 3;
+    int Z set 4 add 5 sub 1;
 end;

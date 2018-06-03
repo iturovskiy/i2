@@ -1,10 +1,10 @@
 ('FUNC', 'work', ('PARAMLIST', None), [
-('SENTENCE',
-    ('INITVARS', ['VECT', 2, 'int'], [
-        ('INIVECT', 'D', [('INTG', 2), ('INTG', 2)], None, None),
-        ('INIVECT', 'C', [('INTG', 3), ('INTG', 3)], 'set', [[('INTG', 1), ('INTG', 2), ('INTG', 3)], [('INTG', 4), ('INTG', 5), ('INTG', 6)]]),
-        ('INIVECT', 'A', None, 'set', [[('INTG', 1), ('INTG', 2), ('INTG', 3)], [('INTG', 4), ('INTG', 5), ('INTG', 6)]])]))
-('SENTENCE', ('INITVARS', 'int', [('INTS', 'A', ('INTG', 3)), ('INTS', 'B', ('INTG', 4)), ('INTS', 'C', ('ARMEXP', ('INTG', 2), 'add', ('ARMEXP', ('INTG', 5), 'sub', ('INTG', 1)))), ('INTS', 'D', None), ('INTS', 'E', ('INTG', 0))]))
-('SENTENCE', ('INITVARS', 'short', [('INTS', 'A', ('SHRT', 3)), ('INTS', 'B', None), ('INTS', 'C', ('ARMEXP', ('SHRT', 4), 'add', ('SHRT', 5)))]))
+('SENTENCE', ('INITVARS', 'bool', [('BOOLEAN', 'A', None)]))
+('SENTENCE', ('INITVARS', 'int', [('INTS', 'Q', None)]))
+('SENTENCE', None)
+('SENTENCE', ('INITVARS', 'bool', [('BOOLEAN', 'B', ('BOOL', 'true')), ('BOOLEAN', 'C', ('LOGEXP', ('INTG', 5), 'smaller', ('INTG', 2)))]))
+('SENTENCE', None)
+('SENTENCE', ('INITVARS', 'int', [('INTS', 'X', ('INTG', 3)),
+('INTS', 'Z', ('ARMEXP', ('INTG', 4), 'add', ('INTG', 5)))]))
 ])
 

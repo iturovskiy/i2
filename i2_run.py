@@ -4,18 +4,15 @@ import i2_interpreter as interp
 filename = 'simple.i2'
 
 data = open(filename).read()
-print('--- code ---')
-print(data)
 
-prog = parser.parse(data)
-if not prog:
+parsed = parser.parse(data)
+if not parsed:
 	print('not prog')
 	raise SystemExit
 
-
-b = interp.Interpretator(prog)
+program = interp.Interpreter(parsed)
 try:
-	b.run()
+	program.run()
 	raise SystemExit
 except RuntimeError:
 	pass

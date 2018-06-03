@@ -12,11 +12,13 @@ def p_program(p):
 		p[0] = {}
 		p[0][p[1][1]] = p[1]
 	elif len(p) == 3:
-		p[0] = p[1]
-		if not p[0]:
-			p[0] = {}
-		if p[2]:
+		if p[2][1] not in p[1]:
+			p[0] = p[1]
 			p[0][p[2][1]] = p[2]
+		else:
+			# error
+			p[0] = None
+			p.parser.error = 1
 
 
 def p_func(p):
@@ -25,7 +27,8 @@ def p_func(p):
 
 
 def p_func_error(p):
-	'''func : FUNCTION ID error sentgroup
+	'''func : FUNCTION error paramlist sentgroup
+			| FUNCTION ID error sentgroup
 			| FUNCTION ID paramlist error'''
 	p[0] = None
 	p.parser.error = 1
@@ -138,7 +141,7 @@ def p_initbool(p):
 	'''initbool : ID
 	            | ID SET expr'''
 	if len(p) == 2:
-		p[0] = ('BOOLEAN', p[1], 'undefined')
+		p[0] = ('BOOLEAN', p[1], None)
 	else:
 		p[0] = ('BOOLEAN', p[1], p[3])
 
@@ -178,16 +181,16 @@ def p_initvects_more(p):
 
 def p_initvect_a(p):
 	'''initvect : ID dimensions COMMA'''
-	p[0] = ('INIVECT', p[1], p[2], None, None)
+	p[0] = ('INIVECT', p[1], p[2], None)
 
 
 def p_initvect_b(p):
-	'''initvect : ID SET vectvaluesf
-				 | ID dimensions SET vectvaluesf'''
+	'''initvect : ID SET vectvaluescomma
+				 | ID dimensions SET vectvaluescomma'''
 	if len(p) == 4:
-		p[0] = ('INIVECT', p[1], None, p[2], p[3])
+		p[0] = ('INIVECT', p[1], None, p[3])
 	else:
-		p[0] = ('INIVECT', p[1], p[2], p[3], p[4])
+		p[0] = ('INIVECT', p[1], p[2], p[4])
 
 
 def p_initvect(p):
@@ -195,11 +198,11 @@ def p_initvect(p):
 				| ID SET vectvalues
 				| ID dimensions SET vectvalues'''
 	if len(p) == 3:
-		p[0] = ('INIVECT', p[1], p[2], None, None)
+		p[0] = ('INIVECT', p[1], p[2], None)
 	elif len(p) == 4:
-		p[0] = ('INIVECT', p[1], None, p[2], p[3])
+		p[0] = ('INIVECT', p[1], None, p[3])
 	else:
-		p[0] = ('INIVECT', p[1], p[2], p[3], p[4])
+		p[0] = ('INIVECT', p[1], p[2], p[4])
 
 
 def p_dimensions(p):
@@ -217,8 +220,8 @@ def p_dimension(p):
 	p[0] = p[2]
 
 
-def p_vectvaluesf(p):
-	'''vectvaluesf : vectvalues COMMA'''
+def p_vectvaluescomma(p):
+	'''vectvaluescomma : vectvalues COMMA'''
 	p[0] = p[1]
 
 
@@ -248,17 +251,22 @@ def p_callstd_move(p):
 	'''callstd : MOVE
 			   | RIGHT ENDS
 			   | LEFT ENDS'''
-	p[0] = ('MOV', p[1])
+	p[0] = ('STD', p[1])
 
 
 def p_callstd_lbs(p):
 	'''callstd : LMS ENDS'''
-	p[0] = p[1]
+	p[0] = ('STD', p[1])
 
 
 def p_callstd_return(p):
 	'''callstd : RETURN expr ENDS '''
-	p[0] = ('RETURN', p[2])
+	p[0] = ('STD', p[1], p[2])
+
+
+def p_callstd_print(p):
+	'''callstd : PRINT expr ENDS'''
+	p[0] = ('STD', p[1], p[2])
 
 
 def p_ifcond_simple(p):
@@ -282,11 +290,11 @@ def p_vectelem(p):
 
 def p_num_int(p):
 	'''num : ICONST'''
-	p[0] = ('INTG', p[1])
+	p[0] = ('INT', p[1])
 
 def p_num_sh(p):
 	'''num : SCONST'''
-	p[0] = ('SHRT', p[1])
+	p[0] = ('SHORT', p[1])
 
 
 def p_bool(p):
@@ -348,7 +356,7 @@ def p_nor(p):
 
 
 def p_callfunc(p):
-	'''callfunc : ID callfparams'''
+	'''callfunc : ID callfuncparams'''
 	p[0] = ('CALLFUNC', p[1], p[2])
 
 
@@ -359,23 +367,23 @@ def p_callfunc_sizeof(p):
 				| SIZEOF LPAREN num RPAREN
 				| SIZEOF LPAREN vectelem RPAREN
 				| SIZEOF LPAREN ID RPAREN'''
-	p[0] = ('CALLFUNC', p[1], [3])
+	p[0] = ('CALLFUNC', p[1], p[3])
 
 
-def p_callfparams(p):
-	'''callfparams : LPAREN RPAREN
-				   | LPAREN callfparam RPAREN'''
+def p_callfuncparams(p):
+	'''callfuncparams : LPAREN RPAREN
+				      | LPAREN callfuncparam RPAREN'''
 	if len(p) == 4:
 		p[0] = p[2]
 	else:
 		p[0] = None
 
 
-def p_callfparam(p):
-	'''callfparam : ID
-				  | expr
-				  | callfparam ID
-				  | callfparam expr'''
+def p_callfuncparam(p):
+	'''callfuncparam : ID
+				     | expr
+				     | callfuncparam ID
+				     | callfuncparam expr'''
 	if len(p) == 2:
 		p[0] = [p[1]]
 	else:
@@ -390,6 +398,14 @@ def p_error(t):
 parser = yacc.yacc()
 
 
+def parse(data, debug=0):
+	parser.error = 0
+	p = parser.parse(data, debug=debug)#True)
+	if parser.error:
+		return None
+	return p
+
+
 if __name__ == '__main__':
 
 	def lexx(lexer, data):
@@ -400,16 +416,8 @@ if __name__ == '__main__':
 				break
 
 
-	def parse(data, debug=0):
-		parser.error = 0
-		p = parser.parse(data, debug=debug)#True)
-		if parser.error:
-			return None
-		return p
-
-
 	lexer = lex.lex(module=i2_lexer)
-
+	lexer.lineno = 1
 	print()
 	filename = 'simple.i2'
 	data = open(filename).read()

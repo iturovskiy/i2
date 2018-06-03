@@ -12,14 +12,14 @@ states = [
 	('MOVE', 'exclusive')
 ]
 
-# кортеж зарезервированных слов
+
 reserved = (
 	'false',
 	'true',
 	'undefined'
 )
 
-# словарь ключевых слов - токены
+
 keywords = {
 	'smaller': 'SMALLER',
 	'larger': 'LARGER',
@@ -52,16 +52,16 @@ keywords = {
 
 	'lms': 'LMS',
 	'move': 'MOVE',
-	'sizeof': 'SIZEOF'
+	'sizeof': 'SIZEOF',
+	'print' : 'PRINT'
 }
 
-# кортеж токенов
+
 tokens = tuple(keywords.values()) + (
 	'ID', 'ICONST', 'SCONST', 'BCONST',
 	'LPAREN', 'RPAREN', 'LBRACKET', 'RBRACKET', 'LBRACE', 'RBRACE', 'COMMA',
 	'ENDS', 'NEWLINE'
 )
-
 
 
 def t_MOVE(t):
@@ -89,7 +89,6 @@ def t_MOVE_ends(t):
 	t.value = 'move'
 	t.lexer.begin('INITIAL')
 	return t
-
 
 
 t_COMMA = r'\,'
@@ -150,9 +149,8 @@ def t_ID(t):
 
 
 def t_NEWLINE(t):
-	r'\n'
-	t.lexer.lineno += 1
-	#t.lexer.lexposition = t.lexer.lexpos
+	r'\n+'
+	t.lexer.lineno += len(t.value)
 
 
 lexer = lex.lex()
