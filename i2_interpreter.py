@@ -1,4 +1,4 @@
-from i2_lexer import SO_BOOL, SO_INT, SO_SHORT, MAX_SHORT, MAX_INT
+from numpy import array
 
 def ternary_AND(tup1, tup2):
 	x1 = tup1[1]
@@ -93,11 +93,12 @@ class Interpreter:
 		self.error = 0
 		self.isLabyrinthInit = False
 		self.errorList = (
-			'warning: labirinth not initialized',
-			'# 1: no program entry point',
-			'# 2: incompatible types',
-			'# 3: uninitialized variable',
-			'# 4: incorrect call params'
+			'Предупреждение: Лабиринт неинициплизирован!',
+			'# 1: Отсутствует точка входа в программу.',
+			'# 2: Несовпадение типов.',
+			'# 3: Неинициализированная переменная.',
+			'# 4: Некорректные параметры вызова.'
+			'# 5: Несовпадение размерностей vector.'
 		)
 
 	def run(self):
@@ -106,17 +107,17 @@ class Interpreter:
 			self.error = 1
 			raise RuntimeError
 
-		if not self.__init_labyrinth():
+		if not self._init_labyrinth():
 			print(self.errorList[0])
 
-		return self.__call_func('work', None)
+		return self._call_func('work', None)
 
 	# TODO написать здесь инициализацию лабиринта
-	def __init_labyrinth(self):
+	def _init_labyrinth(self):
 
 		return False
 
-	def __call_func(self, funcID, funcParams):
+	def _call_func(self, funcID, funcParams):
 		# TODO реализовать здесь sizeof
 
 		localVariables = {}
@@ -125,13 +126,13 @@ class Interpreter:
 		# если ошибка - вызвать self.errorList[4]
 		# иначе занести их в localVariables
 
-		self.__sentencess(self.prog[funcID][3][1], localVariables) # ('SENTGROUP', p[2]) -> sentencess = [ ('SENTENCE', p[1]), ... ]
+		self._sentencess(self.prog[funcID][3][1],
+		                 localVariables)  # ('SENTGROUP', p[2]) -> sentencess = [ ('SENTENCE', p[1]), ... ]
 		print()
 		print(localVariables)
 
-	def __sentencess(self, sentencess, varsDict):
+	def _sentencess(self, sentencess, varsDict):
 		for sentence in sentencess:
-			print(sentence)
 			if sentence[1] is not None:
 				sent = sentence[1]
 				if sent[0] == 'INITVARS':
@@ -147,7 +148,7 @@ class Interpreter:
 					self.__ifcond(sent, varsDict)
 
 				elif sent[0] == 'CALLFUNC':
-					self.__call_func(sent[1], sent[2])
+					self._call_func(sent[1], sent[2])
 
 				elif sent[0] == 'STD':
 					self.__std_func(sent)
@@ -155,15 +156,52 @@ class Interpreter:
 				pass
 
 	def __init_variables(self, sentence, varsDict):
-		expected_type = sentence[1].upper()
-		for var in sentence[2]:
-			if var[2] is None:
-				varsDict[var[1]] = (expected_type, var[2])
-			else:
-				if len(var[2]) == 2:
-					varsDict[var[1]] = var[2]
+		print(sentence)
+		typ = None
+		dims = None
+		# TODO инициализация вектора
+		if type(sentence[1]) is list:
+			typ = 'VECTOR'
+			expected_type = sentence[1][2].upper()
+			dims = sentence[1][1]
+			for var in sentence[2]:
+				# TODO проверка наличия переменной?
+				if var[2] is None and var[3] is not None:
+					a = array(var[3])
+					if len(a.shape) != dims:
+						print(self.errorList[5])
+						raise RuntimeError
+				# TODO
+
+				elif var[2] is not None:
+					if len(var[2]) != dims:
+						print(self.errorList[5])
+						raise RuntimeError
+					sizes = [self.__exps(it, varsDict, sentence[1][2]) for it in var[2]]
+					sizess = [i[1] for i in sizes]
+					sizess = tuple(sizess)
+					result = [sentence[1][2], sizess, None]
+
+					if var[3] is None:
+						varsDict[var[1]] = result
+
+					else:
+						a = array(var[3])
+						if len(a.shape) != dims or a.shape != sizess:
+							print(self.errorList[5])
+							raise RuntimeError
+					# TODO
+
+		else:
+			expected_type = sentence[1].upper()
+			for var in sentence[2]:
+				if var[2] is None:
+					varsDict[var[1]] = (expected_type, var[2])
 				else:
-					varsDict[var[1]] = self.__exps(var[2], varsDict, expected_type)
+					if len(var[2]) == 2:
+						varsDict[var[1]] = var[2]
+					else:
+						varsDict[var[1]] = self.__exps(var[2], varsDict, expected_type)
 
 	# TODO: рекурсивно, ога
 	def __exps(self, sentence, varDict, expected_type):
@@ -202,7 +240,8 @@ class Interpreter:
 				# TODO методы лабиринта
 				pass
 			else:
-				print(self.errorList[0])
+				print('Error!' + self.errorList[0][8:])
+				raise RuntimeError
 		else:
 			if sent[1].lower() == 'print':
 				pass

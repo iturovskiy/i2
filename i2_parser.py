@@ -1,5 +1,6 @@
-import ply.yacc as yacc
 import ply.lex  as lex
+import ply.yacc as yacc
+
 import i2_lexer
 
 tokens = i2_lexer.tokens
@@ -181,16 +182,16 @@ def p_initvects_more(p):
 
 def p_initvect_a(p):
 	'''initvect : ID dimensions COMMA'''
-	p[0] = ('INIVECT', p[1], p[2], None)
+	p[0] = ('VECTOR', p[1], p[2], None)
 
 
 def p_initvect_b(p):
 	'''initvect : ID SET vectvaluescomma
 				 | ID dimensions SET vectvaluescomma'''
 	if len(p) == 4:
-		p[0] = ('INIVECT', p[1], None, p[3])
+		p[0] = ('VECTOR', p[1], None, p[3])
 	else:
-		p[0] = ('INIVECT', p[1], p[2], p[4])
+		p[0] = ('VECTOR', p[1], p[2], p[4])
 
 
 def p_initvect(p):
@@ -198,11 +199,11 @@ def p_initvect(p):
 				| ID SET vectvalues
 				| ID dimensions SET vectvalues'''
 	if len(p) == 3:
-		p[0] = ('INIVECT', p[1], p[2], None)
+		p[0] = ('VECTOR', p[1], p[2], None)
 	elif len(p) == 4:
-		p[0] = ('INIVECT', p[1], None, p[3])
+		p[0] = ('VECTOR', p[1], None, p[3])
 	else:
-		p[0] = ('INIVECT', p[1], p[2], p[4])
+		p[0] = ('VECTOR', p[1], p[2], p[4])
 
 
 def p_dimensions(p):

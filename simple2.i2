@@ -2,7 +2,6 @@ function work()
 begin
     int F1 set 1, F2 set 1, i set 2, Fsum;
     int n set 3;
-    ;
     do
         begin
             Fsum set F2 add F1;
@@ -11,6 +10,5 @@ begin
             i set i add 1;
         end
     while i smaller n;
-    q set sizeof(FSUM);
     print(Fsum);
 end;
