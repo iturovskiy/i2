@@ -1,7 +1,15 @@
 function work()
 begin
-    bool C set (5 smaller 2) larger 3;
+    bool C set (5 smaller 2) or 3;
     int Z set 4 add 5 sub 1;
-    vector of vector of int A[2][2];
-    vector of int D set {1, 2, 3, 4};
+    Z set Z add 10;
+    Z set true;
+end;
+
+function sum(int A, bool B)
+begin
+    move;
+    right;
+    move left;
+    print 5;
 end;
