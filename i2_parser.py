@@ -56,7 +56,7 @@ def p_params(p):
 
 def p_param(p):
 	'''param : INT ids
-		     | SHORT ids
+		     | shrt ids
 		     | BOOL ids
 		     | vect ids'''
 	p[0] = (p[1], p[2])
@@ -74,7 +74,7 @@ def p_vect_v(p):
 
 def p_vect_int(p):
 	'''vect : vect INT
-			| vect SHORT'''
+			| vect shrt'''
 	p[0] = p[1]
 	p[0].append(p[2])
 
@@ -379,10 +379,9 @@ def p_callfunc(p):
 	p[0] = ('CALLFUNC', p[1], p[2])
 
 
-# TODO:
 def p_callfunc_sizeof(p):
 	'''callfunc : SIZEOF LPAREN INT RPAREN
-				| SIZEOF LPAREN SHORT RPAREN
+				| SIZEOF LPAREN shrt RPAREN
 				| SIZEOF LPAREN BOOL RPAREN
 				| SIZEOF LPAREN num RPAREN
 				| SIZEOF LPAREN vectelem RPAREN
@@ -447,6 +446,7 @@ if __name__ == '__main__':
 	else:
 		f = open('parseresult.out', 'w')
 		for key in prog:
+			print('%s : %s' % (key, prog[key]))
 			f.write("('" + str(prog[key][0]) + "', '" + str(prog[key][1]) + "', " + str(prog[key][2]) + ", [\n")
 			for sentence in prog[key][3][1]:
 				f.write(str(sentence) + '\n')

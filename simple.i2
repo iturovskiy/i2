@@ -2,14 +2,12 @@ function work()
 begin
     bool C set (5 smaller 2) or 3;
     int Z set 4 add 5 sub 1;
-    Z set Z add 10;
-    Z set true;
+    print 1;
+    sum(Z);
 end;
 
-function sum(int A, bool B)
+function sum(int A)
 begin
-    move;
-    right;
-    move left;
-    print 5;
+    int B set A;
+    print 2;
 end;

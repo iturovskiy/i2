@@ -81,9 +81,7 @@ def t_ID(t):
 	t.value = t.value.lower()
 	if t.value in keywords:
 		t.type = keywords[t.value]
-		return t
-	else:
-		return t
+	return t
 
 
 def t_NEWLINE(t):
@@ -104,7 +102,6 @@ if __name__ == '__main__':
 			print(tok)
 			if tok.type == 'ENDS':
 				print()
-
 
 	print()
 	filename = 'simple.i2'

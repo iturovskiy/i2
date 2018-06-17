@@ -104,8 +104,9 @@ class Interpreter:
 			'Ошибка # 1: Отсутствует точка входа в программу.',
 			'Ошибка # 2: Несовпадение типов.',
 			'Ошибка # 3: Неинициализированная переменная.',
-			'Ошибка # 4: Некорректные параметры вызова.',
-			'Ошибка # 5: Несовпадение размерностей vector.'
+			'Ошибка # 4: Несовпадение размерностей vector.',
+			'Ошибка # 5: Некорректные параметры вызова функции.',
+			'Ошибка # 6: Вызов неизвестной функции.'
 		)
 
 	def run(self):
@@ -138,9 +139,11 @@ class Interpreter:
 		pass
 
 	def __call_func(self, funcID, funcParams):
-		# TODO sizeof
-		if funcID == 'sizeof':
-			return ('SHORT', 3)
+		if funcID == 'work':
+			pass
+		else:
+
+			pass
 
 		localVariables = {}
 
@@ -173,28 +176,31 @@ class Interpreter:
 					self.__ifcond(sent, varsDict)
 
 				elif sent[0] == 'CALLFUNC':
-					self.__call_func(sent[1], sent[2])
+					if sent[1] == 'sizeof':
+						pass
+					else:
+						self.__call_func(sent[1], sent[2])
 
 				elif sent[0] == 'STD':
 					if sent[1] == 'print':
-						if sent[3][0] == 'INT' or sent[3][0] == 'ARMEXP':
+						if sent[2][0] == 'INT' or sent[2][0] == 'ARMEXP':
 							expected_type = 'INT'
-						elif sent[3][0] == 'BOOL' or sent[3][0] == 'LOGEXP':
+						elif sent[2][0] == 'BOOL' or sent[2][0] == 'LOGEXP':
 							expected_type = 'BOOL'
-						elif sent[3][0] == 'SHORT':
+						elif sent[2][0] == 'SHORT':
 							expected_type = 'SHORT'
 
-						res = self.__exps(sent[3], varsDict, expected_type)
+						res = self.__exps(sent[2], varsDict, expected_type)
 						print(res[1])
 					elif sent[1] == 'return':
-						if sent[3][0] == 'INT' or sent[3][0] == 'ARMEXP':
+						if sent[2][0] == 'INT' or sent[2][0] == 'ARMEXP':
 							expected_type = 'INT'
-						elif sent[3][0] == 'BOOL' or sent[3][0] == 'LOGEXP':
+						elif sent[2][0] == 'BOOL' or sent[2][0] == 'LOGEXP':
 							expected_type = 'BOOL'
-						elif sent[3][0] == 'SHORT':
+						elif sent[2][0] == 'SHORT':
 							expected_type = 'SHORT'
 
-						res = self.__exps(sent[3], varsDict, expected_type)
+						res = self.__exps(sent[2], varsDict, expected_type)
 						return res
 					else:
 						self.__std_func(sent)
@@ -214,13 +220,13 @@ class Interpreter:
 				if var[2] is None and var[3] is not None:
 					a = array(var[3])
 					if len(a.shape) != dims:
-						print(self.errorList[5])
+						print(self.errorList[4])
 						raise RuntimeError
 				# TODO
 
 				elif var[2] is not None:
 					if len(var[2]) != dims:
-						print(self.errorList[5])
+						print(self.errorList[4])
 						raise RuntimeError
 					sizes = [(self.__exps(it, varsDict, expected_type)) for it in var[2]]
 					print(sizes)
@@ -234,7 +240,7 @@ class Interpreter:
 					else:
 						a = array(var[3])
 						if len(a.shape) != dims or a.shape != sizess:
-							print(self.errorList[5])
+							print(self.errorList[4])
 							raise RuntimeError
 			# TODO
 		else:
@@ -248,7 +254,7 @@ class Interpreter:
 					else:
 						varsDict[var[1]] = self.__exps(var[2], varsDict, expected_type)
 
-	# TODO если par1 или par2 - vectelem, callfunc
+
 	def __exps(self, expression, varDict, expected_type):
 
 		if expression[0] == 'ARMEXP':
@@ -262,7 +268,6 @@ class Interpreter:
 			elif expression[2] == 'sub':
 				# TODO: переполнение
 				return (expected_type, par1[1] - par2[1])
-
 
 		elif expression[0] == 'LOGEXP':
 
@@ -343,9 +348,32 @@ class Interpreter:
 		elif expression[0] == 'VECTEL':
 			pass
 
-		# TODO:
 		elif expression[0] == 'CALLFUNC':
-			pass
+			if expression[1] == 'sizeof':
+				if expression[2] is str:
+					if expression[2] == 'int':
+						return ('SHORT', SO_INT)
+					elif expression[2] == 'short':
+						return ('SHORT', SO_SHORT)
+					elif expression[2] == 'bool':
+						return ('SHORT', SO_BOOL)
+				elif expression[2] is tuple:
+					if expression[2][0] == 'ID':
+						return ('SHORT', varDict[expression[2][1]][0])
+					elif expression[2][0] == 'VECTEL':
+						pass
+					elif expression[2][0] == 'INT':
+						return ('SHORT', SO_INT)
+					elif expression[2][0] == 'SHORT':
+						return ('SHORT', SO_SHORT)
+			else:
+				# TODO:
+				if expression[1][1] in self.prog:
+					# сравнение
+					pass
+				else:
+					print(self.errorList[6])
+					raise RuntimeError
 
 
 	# TODO: обращение к переменной по минимальному набору символов

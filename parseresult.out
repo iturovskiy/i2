@@ -1,14 +1,12 @@
 ('FUNC', 'work', ('PARAMLIST', None), [
 ('SENTENCE', ('INITVARS', 'bool', [('BOOLEAN', ('ID', 'c'), ('LOGEXP', ('LOGEXP', ('INT', 5), 'smaller', ('INT', 2)), 'or', ('INT', 3)))]))
 ('SENTENCE', ('INITVARS', 'int', [('INTS', ('ID', 'z'), ('ARMEXP', ('INT', 4), 'add', ('ARMEXP', ('INT', 5), 'sub', ('INT', 1))))]))
-('SENTENCE', ('EXPRESSION', ('ID', 'z'), 'set', ('ARMEXP', ('ID', 'z'), 'add', ('INT', 10))))
-('SENTENCE', ('EXPRESSION', ('ID', 'z'), 'set', ('BOOL', 'true')))
+('SENTENCE', ('STD', 'print', ('INT', 1)))
+('SENTENCE', ('CALLFUNC', ('ID', 'sum'), [('ID', 'z')]))
 ])
 
-('FUNC', 'sum', ('PARAMLIST', [('int', ('ID', 'a')), ('bool', ('ID', 'b'))]), [
-('SENTENCE', ('STD', 'move'))
-('SENTENCE', ('STD', 'right'))
-('SENTENCE', ('STD', 'left'))
-('SENTENCE', ('STD', 'print', ('INT', 5)))
+('FUNC', 'sum', ('PARAMLIST', [('int', ('ID', 'a'))]), [
+('SENTENCE', ('INITVARS', 'int', [('INTS', ('ID', 'b'), ('ID', 'a'))]))
+('SENTENCE', ('STD', 'print', ('INT', 2)))
 ])
 
