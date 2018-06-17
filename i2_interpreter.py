@@ -93,11 +93,18 @@ def arithm_to_logic(tup):
 		return ('BOOL', 'undefined')
 
 
+def short_to_int(tup):
+	pass
+
+
+def int_to_short(tup):
+	pass
+
+
 class Interpreter:
 
 	def __init__(self, prog):
 		self.prog = prog
-		self.error = 0
 		self.isLabyrinthInit = False
 		self.errorList = (
 			'Предупреждение: Лабиринт неинициализирован! Попытки вызова методов работы с лабиринтом вызовут ошибку.',
@@ -108,8 +115,15 @@ class Interpreter:
 			'Ошибка # 5: Некорректные параметры вызова функции.',
 			'Ошибка # 6: Вызов неизвестной функции.'
 		)
+		self.error = 0
 
 	def run(self):
+		self.__check_SyntaxError()
+		if self.error:
+			print()
+			print('Total syntax errors have found: ' + str(self.error))
+			raise RuntimeError
+
 		if 'work' not in self.prog:
 			print(self.errorList[1])
 			self.error = 1
@@ -118,11 +132,26 @@ class Interpreter:
 		if not self.__init_labyrinth():
 			print(self.errorList[0])
 
-		# TODO: проверка синтаксических ошибок
-
 		return self.__call_func('work', None)
 
+	# TODO:
+	def __check_SyntaxError(self):
+		if 0 in self.prog:
+			print('-----FUNCS------')
+			self.error += len(self.prog[0])
+			for it in self.prog[0]:
+				print(it[1])
+			print('------SYNTAX-----')
+
+		for func in self.prog:
+			if func != 0:
+				for sent in self.prog[func][3][1]:
+					if sent[1][0] == 'ERR':
+						print(sent[1][1])
+						self.error += 1
+
 	# TODO инициализация лабиринта
+	# перенести в отдельный класс ?
 	def __init_labyrinth(self):
 		return False
 
@@ -142,14 +171,12 @@ class Interpreter:
 		if funcID == 'work':
 			pass
 		else:
-
+			# TODO проверить funcParams с тем что должно быть в self.prog[funcID][2]
+			# TODO если ошибка - вызвать self.errorList[4]
+			# TODO иначе занести их в localVariables
 			pass
 
 		localVariables = {}
-
-		# TODO проверить funcParams с тем что должно быть в self.prog[funcID][2]
-		# TODO если ошибка - вызвать self.errorList[4]
-		# TODO иначе занести их в localVariables
 
 		self.__sentencess(self.prog[funcID][3][1],
 		                  localVariables)  # ('SENTGROUP', p[2]) -> sentencess = [ ('SENTENCE', p[1]), ... ]

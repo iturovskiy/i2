@@ -73,6 +73,7 @@ def t_SCONST(t):
 	r'((\-)?(?i)[S][1-9][0-9]*)|((?i)[S][0])'
 	t.value = sub(r'(?i)[S]', '', t.value)
 	t.value = int(t.value)
+	t.lexer.lexpos -= 1
 	return t;
 
 

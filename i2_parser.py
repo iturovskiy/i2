@@ -11,15 +11,40 @@ def p_program(p):
 			   | func'''
 	if len(p) == 2 and p[1]:
 		p[0] = {}
-		p[0][p[1][1]] = p[1]
+		if p[1][0] == 'FUNCERROR':
+			p[0][0] = [p[1]]
+		else:
+			p[0][p[1][1]] = p[1]
+
 	elif len(p) == 3:
-		if p[2][1] not in p[1]:
+		if p[2][0] == 'FUNCERROR':
+			p[0] = p[1]
+			if 0 not in p[0]:
+				p[0][0] = [p[2]]
+			else:
+				p[0][0].append(p[2])
+
+		elif p[2][1] not in p[1]:
 			p[0] = p[1]
 			p[0][p[2][1]] = p[2]
+
 		else:
 			# error
-			p[0] = None
-			p.parser.error = 1
+			p[0][0].append(
+				('FUNCERROR', 'FUNCTION WITH THAT ID "%s" ALREADY EXIST at line %s' % (p[2][1], p.lineno(2))))
+			p.parser.error += 1
+
+
+def p_program_error(p):
+	'''program : program error
+			   | error'''
+	if len(p) == 2:
+		p[0] = {}
+	else:
+		p[0] = p[1]
+	p[0][0].append(('FUNCERROR', 'NOT FUNC at line %s' % p.lineno(1)))
+	print('NOT FUNC SENTENCE at line %s' % p.lineno(1))
+	p.parser.error += 1
 
 
 def p_func(p):
@@ -27,12 +52,27 @@ def p_func(p):
 	p[0] = ('FUNC', p[2][1], p[3], p[4])
 
 
-def p_func_error(p):
-	'''func : FUNCTION error paramlist sentgroup
-			| FUNCTION ids error sentgroup
-			| FUNCTION ids paramlist error'''
-	p[0] = None
-	p.parser.error = 1
+def p_func_error1(p):
+	'''func : FUNCTION error paramlist sentgroup ENDS'''
+	p[0] = ('FUNCERROR', 'BAD FUNC ID at line %s' % p.lineno(1))
+	p.parser.error += 1
+
+
+def p_func_error2(p):
+	'''func : FUNCTION ids error sentgroup ENDS'''
+	p[0] = ('FUNCERROR', 'BAD FUNC PARAMS at line %s' % p.lineno(1))
+	p.parser.error += 1
+
+
+def p_func_error3(p):
+	'''func : FUNCTION ids paramlist error ENDS'''
+	p[0] = ('FUNCERROR', 'BAD FUNC SENTGROUP at line %s' % p.lineno(1))
+	p.parser.error += 1
+
+
+def p_func_error4(p):
+	'''func : FUNCTION error'''
+	p[0] = ('FUNCERROR', 'TERRIBLE FUNC ERRORS at line %s' % p.lineno(1))
 
 
 def p_paramlist(p):
@@ -109,10 +149,31 @@ def p_sentence_empty(p):
 	p[0] = ('SENTENCE', 'EMPTY')
 
 
+def p_sentence_error(p):
+	'''sentence : error'''
+	p.parser.error += 1
+	p[0] = ('SENTENCE', ('ERR', 'SYNT: SOME TERRIBLE SENTENCE ERROR at line %s' % p.lineno(1)))
+
+
+
 def p_cycle(p):
 	'''cycle : DO sentgroup WHILE expr ENDS
 			 | DO sentence WHILE expr ENDS'''
 	p[0] = ('DOWHILE', p[2], p[4])
+
+
+# ENDS ?
+def p_cycle_error(p):
+	'''cycle : DO sentgroup WHILE error
+			 | DO sentence WHILE error'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: CYCLE CONDITIONS ERROR at line %s' % p.lineno(1))
+
+
+def p_cycle_error1(p):
+	'''cycle : DO error'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: CYCLE TERRIBLE ERROR at line %s' % p.lineno(1))
 
 
 def p_initvars(p):
@@ -121,6 +182,15 @@ def p_initvars(p):
 				| shrt initints
 				| vect initvects'''
 	p[0] = ('INITVARS', p[1], p[2])
+
+
+def p_initvars_error(p):
+	'''initvars : BOOL error
+				| INT error
+				| shrt error
+				| vect error'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: INIT VARS ERROR at line %s' % p.lineno(1))
 
 
 def p_shrt(p):
@@ -274,7 +344,7 @@ def p_leftm(p):
 		p[0] = p[1]
 
 
-def p_callstd_lbs(p):
+def p_callstd_lms(p):
 	'''callstd : LMS'''
 	p[0] = ('STD', p[1])
 
@@ -284,14 +354,26 @@ def p_callstd_return(p):
 	p[0] = ('STD', p[1], p[2])
 
 
+def p_callstd_return_error(p):
+	'''callstd : RETURN error'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: BAD RETURN at line %s' % p.lineno(1))
+
+
 def p_callstd_print(p):
 	'''callstd : PRINT expr'''
 	p[0] = ('STD', p[1], p[2])
 
 
+def p_callstd_print_error(p):
+	'''callstd : PRINT error'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: BAD PRINT at line %s' % p.lineno(1))
+
+
 def p_ifcond_simple(p):
 	'''ifcond : IF expr THEN sentence
-			  | IF expr THEN sentgroup ENDS '''
+			  | IF expr THEN sentgroup ENDS'''
 	p[0] = ('IFCOND', p[2], p[4], None)
 
 
@@ -303,6 +385,23 @@ def p_ifcond_complex(p):
 	p[0] = ('IFCOND', p[2], p[4], p[6])
 
 
+def p_ifcond_error(p):
+	'''ifcond : IF error THEN sentence
+			  | IF error THEN sentgroup ENDS
+			  | IF error THEN sentence ELSE sentence
+			  | IF error THEN sentence ELSE sentgroup ENDS
+			  | IF error THEN sentgroup ELSE sentence
+			  | IF error THEN sentgroup ELSE sentgroup ENDS'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: BAD LOGIC CONDITIONS IN "IF SENTENCE" at line %s' % p.lineno(1))
+
+
+def p_ifcond_error1(p):
+	'''ifcond : IF error'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: TERRIBLE ERROR IN "IF SENTENCE" at line %s' % p.lineno(1))
+
+
 def p_vectelem(p):
 	'''vectelem : ids dimensions'''
 	p[0] = ('VECTEL', p[1], p[2])
@@ -311,6 +410,7 @@ def p_vectelem(p):
 def p_num_int(p):
 	'''num : ICONST'''
 	p[0] = ('INT', p[1])
+
 
 def p_num_sh(p):
 	'''num : SCONST'''
@@ -328,6 +428,13 @@ def p_expression(p):
 	'''expression : ids SET expr
 				  | vectelem SET expr'''
 	p[0] = ('EXPRESSION', p[1], p[2], p[3])
+
+
+def p_expression_error(p):
+	'''expression : ids SET error
+				  | vectelem SET error'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: BAD ASSIGNMENT VALUE at line %s' % p.lineno(1))
 
 
 def p_ids(p):
@@ -379,6 +486,12 @@ def p_callfunc(p):
 	p[0] = ('CALLFUNC', p[1], p[2])
 
 
+def p_callfunc_error(p):
+	'''callfunc : ids LPAREN error RPAREN'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: BAD FUNC "%s" CALL PARAMS at line %s' % (p[1][1], p.lineno(1)))
+
+
 def p_callfunc_sizeof(p):
 	'''callfunc : SIZEOF LPAREN INT RPAREN
 				| SIZEOF LPAREN shrt RPAREN
@@ -387,6 +500,12 @@ def p_callfunc_sizeof(p):
 				| SIZEOF LPAREN vectelem RPAREN
 				| SIZEOF LPAREN ids RPAREN'''
 	p[0] = ('CALLFUNC', p[1], p[3])
+
+
+def p_callfunc_sizeof_error(p):
+	'''callfunc : SIZEOF LPAREN error RPAREN'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: BAD FUNC "sizeof" CALL PARAMS at line %s' % p.lineno(1))
 
 
 def p_callfuncparams(p):
@@ -408,8 +527,8 @@ def p_callfuncparam(p):
 		p[0].append(p[2])
 
 
-def p_error(t):
-	print("Syntax error at line '%s', token = '%s', value = '%s'" % (t.lexer.lineno, t.type, t.value))
+def p_error(p):
+	pass
 
 
 parser = yacc.yacc()
@@ -417,9 +536,7 @@ parser = yacc.yacc()
 
 def parse(data, debug=0):
 	parser.error = 0
-	p = parser.parse(data, debug=debug)#True)
-	if parser.error:
-		return None
+	p = parser.parse(data, debug=debug)
 	return p
 
 
@@ -434,21 +551,24 @@ if __name__ == '__main__':
 
 
 	lexer = lex.lex(module=i2_lexer)
-	lexer.lineno = 1
+	# lexer.lineno = 1
 	print()
 	filename = 'simple.i2'
 	data = open(filename).read()
 	lexx(lexer, data)
 	print()
-	prog = parse(data)
+	prog = parse(data, 0)
 	if not prog:
 	 	print('not prog')
 	else:
 		f = open('parseresult.out', 'w')
 		for key in prog:
 			print('%s : %s' % (key, prog[key]))
-			f.write("('" + str(prog[key][0]) + "', '" + str(prog[key][1]) + "', " + str(prog[key][2]) + ", [\n")
-			for sentence in prog[key][3][1]:
-				f.write(str(sentence) + '\n')
-			f.write('])\n\n')
+			if key == 0:
+				f.write('FUNC ERRORS:::' + str(prog[key]) + '\n')
+			else:
+				f.write("('" + str(prog[key][0]) + "', '" + str(prog[key][1]) + "', " + str(prog[key][2]) + ", [\n")
+				for sentence in prog[key][3][1]:
+					f.write(str(sentence) + '\n')
+				f.write('])\n\n')
 		f.close()

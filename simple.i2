@@ -3,9 +3,10 @@ begin
     bool C set (5 smaller 2) or 3;
     int Z set 4 add 5 sub 1;
     print 1;
+    rs1;
 end;
 
-function sum(int A)
+function q23(int, short)
 begin
     int B set A;
     print 2;
