@@ -3,7 +3,6 @@ begin
     bool C set (5 smaller 2) or 3;
     int Z set 4 add 5 sub 1;
     print 1;
-    sum(Z);
 end;
 
 function sum(int A)

@@ -1,6 +1,4 @@
 /.idea
 /__pycache__
 /tests
-.idea
-parser.out
-parseresult.out
+.out
