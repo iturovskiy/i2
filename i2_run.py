@@ -13,7 +13,9 @@ if not parsed:
 
 program = interp.Interpreter(parsed)
 try:
-	program.run()
+	exitcode = program.run()
+	if exitcode is not None:
+		print('-Exit code ', exitcode)
 	raise SystemExit
 except RuntimeError:
 	pass

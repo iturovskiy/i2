@@ -1,13 +1,5 @@
 function work()
 begin
-    bool C set (5 smaller 2) or 3;
-    int Z set 4 add 5 sub 1;
-    print 1;
-    rs1;
-end;
-
-function q23(int, short)
-begin
-    int B set A;
-    print 2;
+    vector of vector of int D2 set {{1,2,3}, {T, 1 add 1, 2}};
+    vector of int A set {1, T, 3};
 end;
