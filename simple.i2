@@ -1,5 +1,0 @@
-function work()
-begin
-    vector of vector of int D2 set {{1,2,3}, {T, 1 add 1, 2}};
-    vector of int A set {1, T, 3};
-end;

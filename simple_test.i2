@@ -1,0 +1,7 @@
+function work()
+begin
+     vector of vector of vector of int D3 set { {{1 add 10 sub 1, 2}, {2, 3}, {3, 4}}, {{4, 5}, {5, 6}, {6, 7}} };
+     vector of bool Q[3] set {true, false, undefined};
+     vector of bool Q1 set {Q[0], undefined, 0};
+     q[0] set false;
+end;

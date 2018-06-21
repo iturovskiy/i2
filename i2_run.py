@@ -1,8 +1,11 @@
 import i2_interpreter as interp
 import i2_parser as parser
 
-filename = 'simple.i2'
-filename2 = 'simple2.i2'
+filename = 'simple_test.i2'
+filename2 = 'simple_fib.i2'
+filename3 = 'simple_buble.i2'
+filename5 = 'simple_rec.i2'
+filename6 = 'simple_laby.i2'
 
 data = open(filename).read()
 

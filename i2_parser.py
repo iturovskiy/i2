@@ -112,8 +112,9 @@ def p_vect_v(p):
 		p[0] = ['VECT', 1]
 
 
-def p_vect_int(p):
+def p_vect_type(p):
 	'''vect : vect INT
+			| vect BOOL
 			| vect shrt'''
 	p[0] = p[1]
 	p[0].append(p[2])
@@ -242,26 +243,12 @@ def p_initvects(p):
 
 
 def p_initvects_more(p):
-	'''initvects : initvects initvect'''
+	'''initvects : initvects COMMA initvect'''
 	if type(p[1]) is not list:
 	 	p[0] = [p[1]]
 	else:
 		p[0] = p[1]
-	p[0].append(p[2])
-
-
-def p_initvect_a(p):
-	'''initvect : ids dimensions COMMA'''
-	p[0] = ('VECTOR', p[1], p[2], None)
-
-
-def p_initvect_b(p):
-	'''initvect : ids SET vectvaluescomma
-				 | ids dimensions SET vectvaluescomma'''
-	if len(p) == 4:
-		p[0] = ('VECTOR', p[1], None, p[3])
-	else:
-		p[0] = ('VECTOR', p[1], p[2], p[4])
+	p[0].append(p[3])
 
 
 def p_initvect(p):
@@ -291,31 +278,31 @@ def p_dimension(p):
 	p[0] = p[2]
 
 
-def p_vectvaluescomma(p):
-	'''vectvaluescomma : vectvalues COMMA'''
-	p[0] = p[1]
-
-
-def p_vectvalues_coma(p):
-	'''vectvalues : vectvalues COMMA vectvalues'''
-	p[0] = [p[1]]
-	p[0].append(p[3])
-
-
-def p_vectvalues_vect(p):
-	'''vectvalues : LBRACE vectvalue RBRACE
-				  | LBRACE vectvalues RBRACE'''
+def p_vectvalues(p):
+	'''vectvalues : LBRACE vectels RBRACE'''
 	p[0] = p[2]
 
 
-def p_vectvalue(p):
-	'''vectvalue : expr
-				 | vectvalue COMMA expr'''
-	if (len(p) == 2):
+def p_vectels(p):
+	'''vectels : vectel
+			   | vectels COMMA vectel'''
+	if len(p) == 2:
 		p[0] = [p[1]]
 	else:
-		p[0] = p[1]
-		p[0].append(p[3])
+		if p[1] is None:
+			p[0] = None
+		elif type(p[1][-1]) is not type(p[3]):
+			p.parser.error += 1
+			p[0] = None
+		else:
+			p[0] = p[1]
+			p[0].append(p[3])
+
+
+def p_vectel(p):
+	'''vectel : expr
+			  | vectvalues'''
+	p[0] = p[1]
 
 
 def p_callstd_move(p):
@@ -433,7 +420,7 @@ def p_expression_error(p):
 	'''expression : ids SET error
 				  | vectelem SET error'''
 	p.parser.error += 1
-	p[0] = ('ERR', 'SYNT: BAD ASSIGNMENT VALUE at line %s' % p.lineno(1))
+	p[0] = ('ERR', 'SYNT: BAD ASSIGNMENT VALUE at line %s' % p.lineno(2))
 
 
 def p_ids(p):
@@ -488,7 +475,7 @@ def p_callfunc(p):
 def p_callfunc_error(p):
 	'''callfunc : ids LPAREN error RPAREN'''
 	p.parser.error += 1
-	p[0] = ('ERR', 'SYNT: BAD FUNC "%s" CALL PARAMS at line %s' % (p[1][1], p.lineno(1)))
+	p[0] = ('ERR', 'SYNT: BAD FUNC "%s" CALL PARAMS at line %s' % (p[1][1], p.lineno(2)))
 
 
 def p_callfunc_sizeof(p):
@@ -550,13 +537,12 @@ if __name__ == '__main__':
 
 
 	lexer = lex.lex(module=i2_lexer)
-	# lexer.lineno = 1
 	print()
-	filename = 'simple.i2'
+	filename = 'simple_test.i2'
 	data = open(filename).read()
 	lexx(lexer, data)
 	print()
-	prog = parse(data, 0)
+	prog = parse(data, 1)
 	if not prog:
 	 	print('not prog')
 	else:

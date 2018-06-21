@@ -105,6 +105,6 @@ if __name__ == '__main__':
 				print()
 
 	print()
-	filename = 'simple.i2'
+	filename = 'simple_test.i2'
 	data = open(filename).read()
 	test(lexer, data)
