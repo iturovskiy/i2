@@ -539,7 +539,8 @@ if __name__ == '__main__':
 	lexer = lex.lex(module=i2_lexer)
 	print()
 	filename = 'simple_test.i2'
-	data = open(filename).read()
+	filename5 = 'simple_rec.i2'
+	data = open(filename5).read()
 	lexx(lexer, data)
 	print()
 	prog = parse(data, 1)

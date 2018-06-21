@@ -7,7 +7,7 @@ filename3 = 'simple_buble.i2'
 filename5 = 'simple_rec.i2'
 filename6 = 'simple_laby.i2'
 
-data = open(filename).read()
+data = open(filename5).read()
 
 parsed = parser.parse(data)
 if not parsed:

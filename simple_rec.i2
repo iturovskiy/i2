@@ -1,0 +1,34 @@
+function work()
+begin
+    print factorial(10);
+end;
+
+
+function mult(int A, int B)
+begin
+    int N set 0;
+    int iter set 0;
+    do
+        begin
+           N set N add A;
+           i set i add 1;
+        end
+    while (i smaller B);
+    return N;
+end;
+
+
+function factorial(int N)
+begin
+    print N;
+    bool c1 set N larger 0, c2 set N larger 1;
+    if (c1 smaller 0) or (c2 smaller 1) then
+        return 1;
+    return mult(N factorial(N sub 1));
+end;
+
+function infRec(int N)
+begin
+    print N;
+    infRec(N add 1);
+end;
