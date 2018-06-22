@@ -1,17 +1,18 @@
 function work()
 begin
-    :
-    vector of int A set {1, 2};
-    int Q set s4;
-    short int Z set 5;
-    Q set ((5 add s3) sub false) add s3;
-    bool Q set move left;
-    Q set right;
+    int aba set 10, abc set 5;
+    bool qoob set true;
+    bool sol set fun(aba 3 5 smaller 3 add 1);
+    print sol;
+    return sol;
 end;
 
-function ret1()
+
+function fun(int A, int B, bool C)
 begin
-    int some;
+    int Q set A add B;
+    bool D set (Q smaller 10);
+    return D;
 end;
 
 

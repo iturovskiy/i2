@@ -553,7 +553,7 @@ if __name__ == '__main__':
 	lexer = lex.lex(module=i2_lexer)
 	print()
 	filename1 = 'simple_test.i2'
-	filename5 = 'simple_rec.i2'
+	filename5 = 'simple_factorial.i2'
 	data = open(filename1).read()
 	lexx(lexer, data)
 	print()

@@ -4,8 +4,8 @@ from numpy import array
 
 from labyrinth import Labyrinth
 
-MAX_SHORT = 2 ** 8
-MAX_INT = 2 ** 12
+MAX_SHORT = 2 ** 10
+MAX_INT = 2 ** 15
 
 SO_INT = 4
 SO_SHORT = 2
@@ -157,7 +157,6 @@ def leng(obj):
 
 
 class Interpreter:
-	# TODO: лабиринт
 
 	def __init__(self, prog):
 		self.prog = prog
@@ -214,6 +213,7 @@ class Interpreter:
 						else:
 							typ = params[i][0]
 						if typ != funcParams[i][0]:
+							# в принципе, сюда можно добавть преобразование типов и забить на ошибку
 							print(ERROR_LIST[5] + funcID)
 							raise RuntimeError
 						localVariables[params[i][1]] = funcParams[i]
@@ -290,10 +290,7 @@ class Interpreter:
 
 						res = self._exps(sent[2], varsDict, expected_type)
 						return res
-				# else:
-				# 	self._std_func(sent)
 
-				# TODO:
 				elif sent[0] == 'OPERATOR':
 					if self.isLabyrinthInit:
 						if sent[1] == 'move':
@@ -405,11 +402,11 @@ class Interpreter:
 				par2 = self._exps(expression[3], varsDict, 'INT')
 
 				if par1[1] < par2[1]:
-					return ('BOOL', 'true')
+					return self._exps(('BOOL', 'true'), varsDict, expected_type)
 				elif par1[1] == par2[1]:
-					return ('BOOL', 'undefined')
+					return self._exps(('BOOL', 'undefined'), varsDict, expected_type)
 				elif par1[1] > par2[1]:
-					return ('BOOL', 'false')
+					return self._exps(('BOOL', 'false'), varsDict, expected_type)
 
 			elif expression[2] == 'larger':
 				par1 = self._exps(expression[1], varsDict, 'INT')
@@ -421,11 +418,11 @@ class Interpreter:
 					par2 = logic_to_arithm(par2)
 
 				if par1[1] > par2[1]:
-					return ('BOOL', 'true')
+					return self._exps(('BOOL', 'true'), varsDict, expected_type)
 				elif par1[1] == par2[1]:
-					return ('BOOL', 'undefined')
+					return self._exps(('BOOL', 'undefined'), varsDict, expected_type)
 				elif par1[1] < par2[1]:
-					return ('BOOL', 'false')
+					return self._exps(('BOOL', 'false'), varsDict, expected_type)
 
 			par1 = self._exps(expression[1], varsDict, expected_type)
 			par2 = self._exps(expression[3], varsDict, expected_type)
