@@ -73,7 +73,7 @@ class Labyrinth:
 		j = self.robotPosJ
 		step = -1
 		if mapp[i][j][1] == '0':
-			if (self.robotPosI + step) == -1:
+			if (self.robotPosJ + step) == -1:
 				print('ВЫШЛИ ИЗ ЛАБИРИНТА! УРА')
 				print_laby(self.labymap)
 				print('Выход: [%s][%s]' % (self.robotPosI, self.robotPosJ))
@@ -89,7 +89,7 @@ class Labyrinth:
 		j = self.robotPosJ
 		step = 1
 		if mapp[i][j][3] == '0':
-			if (self.robotPosI - step) == self.elems:
+			if (self.robotPosJ + step) == self.elems:
 				print('ВЫШЛИ ИЗ ЛАБИРИНТА! УРА')
 				print_laby(self.labymap)
 				print('Выход: [%s][%s]' % (self.robotPosI, self.robotPosJ))
@@ -149,7 +149,7 @@ def algo(l):
 	# l.left()
 	# l.left()
 	# l.left()
-	# l.move()
+	# l.left()
 	return 1
 
 
