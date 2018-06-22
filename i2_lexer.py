@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from re import sub
 
 import ply.lex as lex
@@ -57,10 +59,10 @@ t_RBRACE = r'\}'
 t_ENDS = r';'
 t_ANY_ignore = ' \t'
 
-def t_ANY_error(t):
-	t.type = 'ERROR'
-	t.value = 404
-	return t
+
+def t_error(t):
+	print("Illegal character '%s'" % t.value[0])
+
 
 
 def t_ICONST(t):
@@ -73,7 +75,6 @@ def t_SCONST(t):
 	r'((\-)?(?i)[S][1-9][0-9]*)|((?i)[S][0])'
 	t.value = sub(r'(?i)[S]', '', t.value)
 	t.value = int(t.value)
-	t.lexer.lexpos -= 1
 	return t;
 
 

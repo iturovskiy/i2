@@ -1,6 +1,6 @@
 function work()
 begin
-    print factorial(10);
+    print factorial(4);
 end;
 
 
@@ -25,10 +25,4 @@ begin
     if (c1 smaller 0) or (c2 smaller 1) then
         return 1;
     return mult(N factorial(N sub 1));
-end;
-
-function infRec(int N)
-begin
-    print N;
-    infRec(N add 1);
 end;

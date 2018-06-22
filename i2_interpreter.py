@@ -1,4 +1,8 @@
+# -*- coding: utf-8 -*-
+
 from numpy import array
+
+from labyrinth import Labyrinth
 
 MAX_SHORT = 2 ** 8
 MAX_INT = 2 ** 12
@@ -6,6 +10,22 @@ MAX_INT = 2 ** 12
 SO_INT = 4
 SO_SHORT = 2
 SO_BOOL = 1
+
+ERROR_LIST = (
+	'Предупреждение: Лабиринт неинициализирован! Попытки вызова методов работы с лабиринтом вызовут ошибку.',
+	'Ошибка # 1: Отсутствует точка входа в программу.',
+	'Ошибка # 2: Несовпадение типов.',
+	'Ошибка # 3: Необъявленная переменная.',
+	'Ошибка # 4: Несовпадение размерностей vector.',
+	'Ошибка # 5: Некорректные параметры вызова функции.',
+	'Ошибка # 6: Вызов неизвестной функции.',
+	'Ошибка # 7: По миниальной лексеме найдено несколько переменных.',
+	'Ошибка # 8: Обращение к вектору как к переменной.',
+	'Ошибка # 9: Обращение к неинициализированной переменной.',
+	'Ошибка # 10: Переполнение.',
+	'Ошибка # 11: Дистигнута максимальная глубина рекурсии.',
+	'Ошибка # 12: Вызванная функция ничего не вернула.'
+)
 
 def ternary_AND(tup1, tup2):
 	x1 = tup1[1]
@@ -77,11 +97,11 @@ def ternary_NOR(tup1, tup2):
 
 def logic_to_arithm(tup):
 	if tup[1] == 'true':
-		return ('INT', 1)
+		return ('SHORT', 1)
 	elif tup[1] == 'false':
-		return ('INT', -1)
+		return ('SHORT', -1)
 	elif tup[1] == 'undefined':
-		return ('INT', 0)
+		return ('SHORT', 0)
 
 
 def arithm_to_logic(tup):
@@ -93,22 +113,11 @@ def arithm_to_logic(tup):
 		return ('BOOL', 'undefined')
 
 
-# TODO: short -> int
-def short_to_int(tup):
-	pass
-
-
-# TODO: short <- int
-def int_to_short(tup):
-	pass
-
-
 def check_vector_shape(vect):
 	ar = array(vect, object)
 	shapess = ar.shape
 	for elm in ar.flat:
 		if type(elm) is not tuple:
-			print('op')
 			shapess = tuple(shapess[0:-1])
 			break
 	return shapess
@@ -126,13 +135,13 @@ def make_size(tup):
 
 def make_index(vecShape, elShape):
 	if leng(elShape) != leng(vecShape):
-		print(self.errorList[4], 'При попытке обратиться к элементу вектора.')
+		print(ERROR_LIST[4], 'При попытке обратиться к элементу вектора.')
 		raise RuntimeError
 	index = 0
 	vecSize = make_size(vecShape)
 	for i in range(len(vecShape)):
 		if elShape[i] >= vecShape[i]:
-			print(self.errorList[4], 'Выход за границы вектора.')
+			print(ERROR_LIST[4], 'Выход за границы вектора.')
 			raise RuntimeError
 		vecSize /= vecShape[i]
 		index += elShape[i] * vecSize
@@ -148,45 +157,35 @@ def leng(obj):
 
 
 class Interpreter:
+	# TODO: лабиринт
 
 	def __init__(self, prog):
 		self.prog = prog
-		self.isLabyrinthInit = False
-		self.errorList = (
-			'Предупреждение: Лабиринт неинициализирован! Попытки вызова методов работы с лабиринтом вызовут ошибку.',
-			'Ошибка # 1: Отсутствует точка входа в программу.',
-			'Ошибка # 2: Несовпадение типов.',
-			'Ошибка # 3: Необъявленная переменная.',
-			'Ошибка # 4: Несовпадение размерностей vector.',
-			'Ошибка # 5: Некорректные параметры вызова функции.',
-			'Ошибка # 6: Вызов неизвестной функции.',
-			'Ошибка # 7: По миниальной лексеме найдено несколько переменных.',
-			'Ошибка # 8: Обращение к вектору как к переменной.',
-			'Ошибка # 9: Обращение к неинициализированной переменной.'
-		)
-		self.error = 0
+		self.labyrinth = Labyrinth()
+		self.isLabyrinthInit = self.labyrinth.inited
+		self.syntErrors = 0
 
 	def run(self):
 		self._check_SyntaxError()
-		if self.error:
+		if self.syntErrors:
 			print()
-			print('Total syntax errors have found: ' + str(self.error))
+			print('Total syntax errors have found: ' + str(self.syntErrors))
 			raise RuntimeError
 
 		if 'work' not in self.prog:
-			print(self.errorList[1])
-			self.error = 1
+			print(ERROR_LIST[1])
+			self.syntErrors = 1
 			raise RuntimeError
 
-		if not self.__init_labyrinth():
-			print(self.errorList[0])
+		if not self.isLabyrinthInit:
+			print(ERROR_LIST[0])
 
 		return self._call_func('work', None)
 
 	def _check_SyntaxError(self):
 		if 0 in self.prog:
 			print('-----WRONG FUNCS------')
-			self.error += len(self.prog[0])
+			self.syntErrors += len(self.prog[0])
 			for it in self.prog[0]:
 				print(it[1])
 			print('-----SYNTAX ERRORS----')
@@ -196,7 +195,7 @@ class Interpreter:
 				for sent in self.prog[func][3][1]:
 					if sent[1][0] == 'ERR':
 						print(sent[1][1])
-						self.error += 1
+						self.syntErrors += 1
 
 	def _call_func(self, funcID, funcParams):
 		localVariables = {}
@@ -205,7 +204,7 @@ class Interpreter:
 			q1 = leng(params)
 			q2 = leng(funcParams)
 			if q1 != q2:
-				print(self.errorList[5] + " (кол-во принятых != кол-во принмаемых) : " + funcID)
+				print(ERROR_LIST[5] + " (кол-во принятых != кол-во принмаемых) : " + funcID)
 				raise RuntimeError
 			else:
 				if params is not None:
@@ -215,7 +214,7 @@ class Interpreter:
 						else:
 							typ = params[i][0]
 						if typ != funcParams[i][0]:
-							print(self.errorList[5] + funcID)
+							print(ERROR_LIST[5] + funcID)
 							raise RuntimeError
 						localVariables[params[i][1]] = funcParams[i]
 
@@ -250,12 +249,22 @@ class Interpreter:
 						return retval
 
 				elif sent[0] == 'CALLFUNC':
-					print('callf', sent)
 					if sent[1][1] != 'sizeof':
 						paramz = []
-						for it in sent[2]:
-							paramz.append(self._exps(it, varsDict))
-						self._call_func(sent[1][1], paramz.copy())
+						if sent[2] is not None:
+							for it in sent[2]:
+								paramz.append(self._exps(it, varsDict))
+							try:
+								self._call_func(sent[1][1], paramz.copy())
+							except RecursionError:
+								print(ERROR_LIST[11])
+								raise RuntimeError
+						else:
+							try:
+								self._call_func(sent[1][1], None)
+							except RecursionError:
+								print(ERROR_LIST[11])
+								raise RuntimeError
 
 				elif sent[0] == 'STD':
 					if sent[1] == 'print':
@@ -281,14 +290,28 @@ class Interpreter:
 
 						res = self._exps(sent[2], varsDict, expected_type)
 						return res
+				# else:
+				# 	self._std_func(sent)
+
+				# TODO:
+				elif sent[0] == 'OPERATOR':
+					if self.isLabyrinthInit:
+						if sent[1] == 'move':
+							self.labyrinth.move()
+						elif sent[1] == 'left':
+							self.labyrinth.left()
+						elif sent[1] == 'right':
+							self.labyrinth.right()
+						elif sent[1] == 'lms':
+							self.labyrinth.lms()
 					else:
-						self._std_func(sent)
+						print('Ошибка # 0:' + ERROR_LIST[0][15:43])
+						raise RuntimeError
 
 				elif sent[0] == 'EMPTY':
 					pass
 
 	def _init_variables(self, sentence, varsDict):
-		print('inivar', sentence)
 		dims = None
 		shapess = None
 		sizess = None
@@ -301,14 +324,14 @@ class Interpreter:
 					shapess = check_vector_shape(var[3])
 					sizess = make_size(shapess)
 					if leng(shapess) != dims:
-						print('q', self.errorList[4])
+						print('q', ERROR_LIST[4])
 						raise RuntimeError
 					result_ar = self.___make_vector(var[3], shapess, varsDict, expected_type)
 					result = ['VECTOR', shapess, expected_type, result_ar]
 
 				elif var[2] is not None:
 					if len(var[2]) != dims:
-						print('z', self.errorList[4])
+						print('z', ERROR_LIST[4])
 						raise RuntimeError
 
 					shapess = [self._exps(i, varsDict, 'INT')[1] for i in var[2]]
@@ -323,7 +346,7 @@ class Interpreter:
 						shapesv = check_vector_shape(var[3])
 						sizesv = make_size(shapesv)
 						if sizess != sizesv:
-							print('x', self.errorList[4])
+							print('x', ERROR_LIST[4])
 							raise RuntimeError
 						result_ar = self.___make_vector(var[3], shapess, varsDict, expected_type)
 						result = ['VECTOR', shapess, expected_type, result_ar]
@@ -337,10 +360,7 @@ class Interpreter:
 				if var[2] is None:
 					varsDict[var[1]] = (expected_type, var[2])
 				else:
-					if len(var[2]) == 2:
-						varsDict[var[1]] = var[2]
-					else:
-						varsDict[var[1]] = self._exps(var[2], varsDict, expected_type)
+					varsDict[var[1]] = self._exps(var[2], varsDict, expected_type)
 
 	def _exps(self, expression, varsDict, expected_type=None):
 		fl_None = False
@@ -355,12 +375,26 @@ class Interpreter:
 			par2 = self._exps(expression[3], varsDict, expected_type)
 
 			if expression[2] == 'add':
-				# TODO: переполнение
-				return (expected_type, par1[1] + par2[1])
+				# переполнение
+				res = par1[1] + par2[1]
+				if expected_type == 'SHORT' and abs(res) >= MAX_SHORT:
+					print(ERROR_LIST[10], 'SHORT')
+					raise RuntimeError
+				elif expected_type == 'INT' and abs(res) >= MAX_INT:
+					print(ERROR_LIST[10], 'INT')
+					raise RuntimeError
+				return (expected_type, res)
 
 			elif expression[2] == 'sub':
-				# TODO: переполнение
-				return (expected_type, par1[1] - par2[1])
+				# переполнение
+				res = par1[1] - par2[1]
+				if expected_type == 'SHORT' and abs(res) >= MAX_SHORT:
+					print(ERROR_LIST[10], 'SHORT')
+					raise RuntimeError
+				elif expected_type == 'INT' and abs(res) >= MAX_INT:
+					print(ERROR_LIST[10], 'INT')
+					raise RuntimeError
+				return (expected_type, res)
 
 		elif expression[0] == 'LOGEXP':
 			if fl_None:
@@ -411,25 +445,40 @@ class Interpreter:
 		elif expression[0] == 'ID':
 			ID = self.___min_lexem(expression, varsDict)
 			if varsDict[ID][0] == 'VECTOR':
-				print(self.errorList[8])
+				print(ERROR_LIST[8])
 				raise RuntimeError
-
-			return self._exps(varsDict[ID], varsDict, expected_type)
+			ret = self._exps(varsDict[ID], varsDict, expected_type)
+			if ret[1] is None:
+				print(ERROR_LIST[9], expression[1])
+				raise RuntimeError
+			return ret
 
 		elif expression[0] == 'INT':
 			if expected_type == 'BOOL':
 				return arithm_to_logic(expression)
 			elif expected_type == 'INT' or fl_None:
+				if abs(expression[1]) >= MAX_INT:
+					print(ERROR_LIST[10], 'INT')
+					raise RuntimeError
 				return expression
 			elif expected_type == 'SHORT':
+				if abs(expression[1]) >= MAX_SHORT:
+					print(ERROR_LIST[10], 'SHORT')
+					raise RuntimeError
 				return ('SHORT', expression[1])
 
 		elif expression[0] == 'SHORT':
 			if expected_type == 'BOOL':
 				return logic_to_arithm(expression)
 			elif expected_type == 'INT':
+				if abs(expression[1]) >= MAX_INT:
+					print(ERROR_LIST[10], 'INT')
+					raise RuntimeError
 				return ('INT', expression[1])
 			elif expected_type == 'SHORT' or fl_None:
+				if abs(expression[1]) >= MAX_SHORT:
+					print(ERROR_LIST[10], 'SHORT')
+					raise RuntimeError
 				return expression
 
 		elif expression[0] == 'BOOL':
@@ -441,55 +490,97 @@ class Interpreter:
 		elif expression[0] == 'VECTEL':
 			ID = self.___min_lexem(expression[1], varsDict)
 			if varsDict[ID][0] != 'VECTOR':
-				print(self.errorList[2], 'Обращение как к вектору для не вектора.')
+				print(ERROR_LIST[2], 'Обращение как к вектору для не вектора.')
 				raise RuntimeError
 			shapess = [self._exps(i, varsDict, 'INT')[1] for i in expression[2]]
-			print('shp', shapess)
+
 			shapess = tuple(shapess)
 			index = make_index(varsDict[ID][1], shapess)
-			return varsDict[ID][3].flat[index]
-
+			ret = self._exps(varsDict[ID][3].flat[index], varsDict, expected_type)
+			if ret[1] is None:
+				print(ERROR_LIST[9], expression[1][1], list(shapess))
+				raise RuntimeError
+			return ret
 
 		elif expression[0] == 'CALLFUNC':
 			if expression[1] == 'sizeof':
-				if expression[2] is str:
+				if type(expression[2]) is str:
 					if expression[2] == 'int':
-						return ('SHORT', SO_INT)
+						return self._exps(('SHORT', SO_INT), varsDict, expected_type)
 					elif expression[2] == 'short':
-						return ('SHORT', SO_SHORT)
+						return self._exps(('SHORT', SO_SHORT), varsDict, expected_type)
 					elif expression[2] == 'bool':
-						return ('SHORT', SO_BOOL)
-				elif expression[2] is tuple:
+						return self._exps(('SHORT', SO_BOOL), varsDict, expected_type)
+
+				elif type(expression[2]) is tuple:
 					if expression[2][0] == 'ID':
 						return ('SHORT', varsDict[expression[2][1]][0])
 					elif expression[2][0] == 'VECTEL':
-						pass
+						vectv = self._exps(expression[2], varsDict)
+						if vectv[0] == 'BOOL':
+							return self._exps(('SHORT', SO_BOOL), varsDict, expected_type)
+						elif vectv[0] == 'INT':
+							return self._exps(('SHORT', SO_INT), varsDict, expected_type)
+						elif vectv[0] == 'SHORT':
+							return self._exps(('SHORT', SO_SHORT), varsDict, expected_type)
 					elif expression[2][0] == 'INT':
-						return ('SHORT', SO_INT)
+						return self._exps(('SHORT', SO_INT), varsDict, expected_type)
 					elif expression[2][0] == 'SHORT':
-						return ('SHORT', SO_SHORT)
+						return self._exps(('SHORT', SO_SHORT), varsDict, expected_type)
+					elif expression[2][0] == 'BOOL':
+						return self._exps(('SHORT', SO_BOOL), varsDict, expected_type)
 			else:
 				if expression[1][1] in self.prog:
 					paramz = []
-					for it in expression[2]:
-						paramz.append(self._exps(it, varsDict))
-					return self._call_func(expression[1][1], paramz.copy())
+					if expression[2] is not None:
+						for it in expression[2]:
+							paramz.append(self._exps(it, varsDict))
+						try:
+							ret = self._call_func(expression[1][1], paramz.copy())
+						except RecursionError:
+							print(ERROR_LIST[11])
+							raise RuntimeError
+					else:
+						try:
+							ret = self._call_func(expression[1][1], None)
+						except RecursionError:
+							print(ERROR_LIST[11])
+							raise RuntimeError
+
+					if ret is None:
+						print(ERROR_LIST[12])
+						raise RuntimeError
+					return ret;
 				else:
-					print(self.errorList[6])
+					print(ERROR_LIST[6], expression[1][1])
 					raise RuntimeError
+
+		elif expression[0] == 'OPERATOR':
+			if self.isLabyrinthInit:
+				if expression[1] == 'move':
+					return self._exps(('BOOL', self.labyrinth.move()), varsDict, expected_type)
+				elif expression[1] == 'left':
+					return self._exps(('BOOL', self.labyrinth.left()), varsDict, expected_type)
+				elif expression[1] == 'right':
+					return self._exps(('BOOL', self.labyrinth.right()), varsDict, expected_type)
+				elif expression[1] == 'lms':
+					return self._exps(('SHORT', self.labyrinth.lms()), varsDict, expected_type)
+			else:
+				print('Ошибка # 0:' + ERROR_LIST[0][15:43])
+				raise RuntimeError
 
 	def _expression(self, sentence, varsDict):
 		# ID
 		if len(sentence[1]) < 3:
 			ID = self.___min_lexem(sentence[1], varsDict)
 			if varsDict[ID][0] == 'VECTOR':
-				print(self.errorList[8])
+				print(ERROR_LIST[8])
 				raise RuntimeError
 			res = self._exps(sentence[3], varsDict, varsDict[ID][0])
 			if res[0] == varsDict[ID][0]:
 				varsDict[ID] = res
 			else:
-				print(self.errorList[2])
+				print(ERROR_LIST[2])
 				raise RuntimeError
 		# VECTEL
 		else:
@@ -531,68 +622,44 @@ class Interpreter:
 		if retval is not None:
 			return retval
 
-	def _std_func(self, sentence):
-		if self.isLabyrinthInit:
-			if sentence[1] == 'move':
-				self.__lab_move()
-			elif sentence[1] == 'left':
-				self.__lab_left()
-			elif sentence[1] == 'right':
-				self.__lab_right()
-			elif sentence[1] == 'lms':
-				self.__lab_lms()
-		else:
-			print('Ошибка # 0:' + self.errorList[0][15:43])
-			raise RuntimeError
-
-	# TODO: лабиринт
-	def __init_labyrinth(self):
-		return False
-
-	def __lab_move(self):
-		pass
-
-	def __lab_left(self):
-		pass
-
-	def __lab_right(self):
-		pass
-
-	def __lab_lms(self):
-		pass
-
 	def ___make_vector(self, vec, expected_shape, varsDict, expected_type):
 		sizess = make_size(expected_shape)
-		if sizess != array(vec).size:
+		if sizess != array(vec, tuple).size:
 			a = [0 for ite in range(sizess)]
 			result_ar = array(a, tuple)
-			ad = array(vec)
+			ad = array(vec, tuple)
 			ad.shape = ad.size
 			i = 0
 			t = 0
 			if sizess == ad.size / 2:
 				while (t < ad.size / 2):
-					result_ar[t] = tuple(ad[i: i + 2])
+					val = ad[i + 1]
+					try:
+						val = int(val)
+					except:
+						pass
+					result_ar[t] = tuple([ad[i], val])
 					i += 2
 					t = int(i / 2)
 
 			elif sizess == ad.size / 3:
 				i = 0
 				while (t < ad.size / 3):
-					result_ar[t] = tuple(ad[i: i + 3])
+					llist = [ad[i], ad[i + 1], ad[i + 2]]
+					result_ar[t] = tuple(llist)
 					i += 3
-					t = i / 3
+					t = int(i / 3)
 
 			elif sizess == ad.size / 4:
 				i = 0
 				while (t < ad.size / 4):
-					result_ar[t] = tuple(ad[i: i + 4])
+					llist = [ad[i], ad[i + 1], ad[i + 2], ad[i + 3]]
+					result_ar[t] = tuple(llist)
 					i += 4
-					t = i / 4
+					t = int(i / 4)
 			result_ar.shape = expected_shape
-
 		else:
-			result_ar = array(vec)
+			result_ar = array(vec, tuple)
 
 		for t in range(result_ar.size):
 			result_ar.flat[t] = self._exps(result_ar.flat[t], varsDict, expected_type)
@@ -611,10 +678,10 @@ class Interpreter:
 					break
 				inns += 1
 		if inns == 0:
-			print(self.errorList[3])
+			print(ERROR_LIST[3])
 			raise RuntimeError
 		elif inns > 1:
-			print(self.errorList[7])
+			print(ERROR_LIST[7])
 			raise RuntimeError
 
 		realID[1] = ID

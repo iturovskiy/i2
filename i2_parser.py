@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import ply.lex  as lex
 import ply.yacc as yacc
 
@@ -17,21 +19,24 @@ def p_program(p):
 			p[0][p[1][1]] = p[1]
 
 	elif len(p) == 3:
+		p[0] = p[1]
 		if p[2][0] == 'FUNCERROR':
-			p[0] = p[1]
 			if 0 not in p[0]:
 				p[0][0] = [p[2]]
 			else:
 				p[0][0].append(p[2])
 
 		elif p[2][1] not in p[1]:
-			p[0] = p[1]
 			p[0][p[2][1]] = p[2]
 
 		else:
 			# error
-			p[0][0].append(
-				('FUNCERROR', 'FUNCTION WITH THAT ID "%s" ALREADY EXIST at line %s' % (p[2][1], p.lineno(2))))
+			if 0 in p[0]:
+				p[0][0].append(
+					('FUNCERROR', 'FUNCTION WITH THAT ID "%s" ALREADY EXIST at line %s' % (p[2][1], p.lineno(2))))
+			else:
+				p[0][0] = [('FUNCERROR', 'FUNCTION WITH THAT ID "%s" ALREADY EXIST at line %s'
+				            % (p[2][1], p.lineno(2)))]
 			p.parser.error += 1
 
 
@@ -139,6 +144,7 @@ def p_sentence(p):
 	'''sentence : initvars ENDS
 				| expression ENDS
 				| callstd ENDS
+				| operator ENDS
 				| callfunc ENDS
 				| cycle
 				| ifcond'''
@@ -305,11 +311,12 @@ def p_vectel(p):
 	p[0] = p[1]
 
 
-def p_callstd_move(p):
-	'''callstd : MOVE
-			   | rightm
-			   | leftm'''
-	p[0] = ('STD', p[1])
+#
+def p_operator_move(p):
+	'''operator : MOVE
+			    | rightm
+			    | leftm'''
+	p[0] = ('OPERATOR', p[1])
 
 
 def p_rightm(p):
@@ -330,9 +337,10 @@ def p_leftm(p):
 		p[0] = p[1]
 
 
-def p_callstd_lms(p):
-	'''callstd : LMS'''
-	p[0] = ('STD', p[1])
+#
+def p_operator_lms(p):
+	'''operator : LMS'''
+	p[0] = ('OPERATOR', p[1])
 
 
 def p_callstd_return(p):
@@ -430,6 +438,7 @@ def p_ids(p):
 
 def p_expr_simple(p):
 	'''expr : num
+			| operator
 			| bool
 			| ids
 			| callfunc
@@ -478,14 +487,16 @@ def p_callfunc_error(p):
 	p[0] = ('ERR', 'SYNT: BAD FUNC "%s" CALL PARAMS at line %s' % (p[1][1], p.lineno(2)))
 
 
-def p_callfunc_sizeof(p):
+def p_callfunc_sizeof_1(p):
 	'''callfunc : SIZEOF LPAREN INT RPAREN
 				| SIZEOF LPAREN shrt RPAREN
-				| SIZEOF LPAREN BOOL RPAREN
-				| SIZEOF LPAREN num RPAREN
-				| SIZEOF LPAREN vectelem RPAREN
-				| SIZEOF LPAREN ids RPAREN'''
+				| SIZEOF LPAREN BOOL RPAREN'''
 	p[0] = ('CALLFUNC', p[1], p[3])
+
+
+def p_callfunc_sizeof_2(p):
+	'''callfunc : SIZEOF expr'''
+	p[0] = ('CALLFUNC', p[1], p[2])
 
 
 def p_callfunc_sizeof_error(p):
@@ -522,7 +533,10 @@ parser = yacc.yacc()
 
 def parse(data, debug=0):
 	parser.error = 0
-	p = parser.parse(data, debug=debug)
+	try:
+		p = parser.parse(data, debug=debug)
+	except lex.LexError:
+		p = None
 	return p
 
 
@@ -538,9 +552,9 @@ if __name__ == '__main__':
 
 	lexer = lex.lex(module=i2_lexer)
 	print()
-	filename = 'simple_test.i2'
+	filename1 = 'simple_test.i2'
 	filename5 = 'simple_rec.i2'
-	data = open(filename5).read()
+	data = open(filename1).read()
 	lexx(lexer, data)
 	print()
 	prog = parse(data, 1)

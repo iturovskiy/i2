@@ -1,13 +1,14 @@
+# -*- coding: utf-8 -*-
+
 import i2_interpreter as interp
 import i2_parser as parser
 
-filename = 'simple_test.i2'
+filename1 = 'simple_test.i2'
 filename2 = 'simple_fib.i2'
-filename3 = 'simple_buble.i2'
-filename5 = 'simple_rec.i2'
-filename6 = 'simple_laby.i2'
+filename3 = 'simple_rec.i2'
+filename0 = 'laby_algo.i2'
 
-data = open(filename5).read()
+data = open(filename1).read()
 
 parsed = parser.parse(data)
 if not parsed:
@@ -17,8 +18,9 @@ if not parsed:
 program = interp.Interpreter(parsed)
 try:
 	exitcode = program.run()
-	if exitcode is not None:
-		print('-Exit code ', exitcode)
+	if exitcode is None:
+		exitcode = 'nothing';
+	print('\n\nFunction "work" has returned:', exitcode)
 	raise SystemExit
 except RuntimeError:
 	pass
