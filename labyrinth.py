@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 
-bool3 = {
+bool3_int = {
 	1: 'true',
 	0: 'undefined',
 	-1: 'false'
+}
+
+bool3_str = {
+	'true': 1,
+	'undefined': 0,
+	'false': -1
 }
 
 class Labyrinth:
@@ -14,6 +20,7 @@ class Labyrinth:
 		self.robotPosI = None
 		self.robotPosJ = None
 		self.inited = False
+		self.ended = False
 		self.radius = 5
 		self.first = 0
 		self.lines = 0
@@ -38,7 +45,7 @@ class Labyrinth:
 		self.elems = len(self.labymap[0])
 		for i in range(len(self.labymap)):
 			for j in range(len(self.labymap[i])):
-				if self.labymap[i][j][-1] == '1':
+				if self.labymap[i][j][-1] == '1' or self.labymap[i][j][-1] == 'R':
 					self.robotPosI = i
 					self.robotPosJ = j
 					break
@@ -59,12 +66,16 @@ class Labyrinth:
 		if mapp[i][j][2] == '0':
 			if (self.robotPosI - step) == -1 or (self.robotPosI - step) == self.lines:
 				print('ВЫШЛИ ИЗ ЛАБИРИНТА! УРА')
-				print_laby(self.labymap)
 				print('Выход: [%s][%s]' % (self.robotPosI, self.robotPosJ))
+				raise EOFError
+				# return bool3_int[-step]
+				raise EOFError
 			self.robotPosI -= step
-			return bool3[step]
+			print('m R: [%s][%s]' % (self.robotPosI, self.robotPosJ))
+			return bool3_int[step]
 		else:
-			return bool3[0]
+			print('m R: [%s][%s]' % (self.robotPosI, self.robotPosJ))
+			return bool3_int[0]
 
 	def left(self):
 		# перемещение по j
@@ -75,12 +86,16 @@ class Labyrinth:
 		if mapp[i][j][1] == '0':
 			if (self.robotPosJ + step) == -1:
 				print('ВЫШЛИ ИЗ ЛАБИРИНТА! УРА')
-				print_laby(self.labymap)
 				print('Выход: [%s][%s]' % (self.robotPosI, self.robotPosJ))
+				# return bool3_int[-step]
+				self.ended = True
+				raise EOFError
 			self.robotPosJ += step
-			return bool3[step]
+			print('l R: [%s][%s]' % (self.robotPosI, self.robotPosJ))
+			return bool3_int[step]
 		else:
-			return bool3[0]
+			print('l R: [%s][%s]' % (self.robotPosI, self.robotPosJ))
+			return bool3_int[0]
 
 	def right(self):
 		# перемещение по j
@@ -91,12 +106,16 @@ class Labyrinth:
 		if mapp[i][j][3] == '0':
 			if (self.robotPosJ + step) == self.elems:
 				print('ВЫШЛИ ИЗ ЛАБИРИНТА! УРА')
-				print_laby(self.labymap)
 				print('Выход: [%s][%s]' % (self.robotPosI, self.robotPosJ))
+				# return bool3_int[-step]
+				self.ended = True
+				raise EOFError
 			self.robotPosJ += step
-			return bool3[step]
+			print('r R: [%s][%s]' % (self.robotPosI, self.robotPosJ))
+			return bool3_int[step]
 		else:
-			return bool3[0]
+			print('r R: [%s][%s]' % (self.robotPosI, self.robotPosJ))
+			return bool3_int[0]
 
 	def lms(self):
 		i = self.robotPosI
@@ -106,10 +125,10 @@ class Labyrinth:
 		self.first += 1
 		if mod == 0:
 			for it in range(rad):
-				if (j - it) == 0:
+				if (j - it) == -1:
 					print('НАШЛИ ВЫХОД ИЗ ЛАБИРИНТА! УРА')
-					print_laby(self.labymap)
 					print('Выход: [%s][%s]' % (self.robotPosI, self.robotPosJ - it))
+					self.ended = True
 					return it
 				if self.labymap[i][j - it][1] == '1':
 					return -it
@@ -117,8 +136,8 @@ class Labyrinth:
 			for it in range(rad):
 				if (j + it) == self.elems:
 					print('НАШЛИ ВЫХОД ИЗ ЛАБИРИНТА! УРА')
-					print_laby(self.labymap)
 					print('Выход: [%s][%s]' % (self.robotPosI, self.robotPosJ + it))
+					self.ended = True
 					return -it
 				if self.labymap[i][j + it][3] == '1':
 					return it
@@ -131,26 +150,80 @@ def print_laby(lab):
 		print(line)
 
 
-# just test
-def algo(l):
-	l.right()
-	l.right()
-	l.right()
-	l.right()
-	l.move()
-	l.right()
-	l.right()
-	l.move()
-	l.left()
-	l.move()
-	print('lms:', l.lms())
-	# l.left()
-	# l.left()
-	# l.left()
-	# l.left()
-	# l.left()
-	# l.left()
-	return 1
+# простейший алгоритм поиска выхода
+
+def algo_(l):
+	rFlag = False
+	lFlag = False
+	vFlag = False
+	vValue = 0
+	hValue = 0
+
+	it = 0
+
+	while it <= 1000:
+
+		if rFlag == False and lFlag == False and vFlag == False:
+			print(0)
+			hValue = l.right()
+			if (bool3_str[hValue] == 0):
+				rFlag = True
+
+		if rFlag == False and lFlag == False and vFlag == True:
+			print(2)
+			hValue = l.right()
+			if (bool3_str[hValue] == 0):
+				rFlag = True
+			else:
+				vFlag = False
+
+		###
+		if rFlag == False and lFlag == True and vFlag == False:
+			pass
+
+		###
+		if rFlag == False and lFlag == True and vFlag == True:
+			pass
+
+		if rFlag == True and lFlag == False and vFlag == False:
+			print(1)
+			vValue = l.move()
+			if bool3_str[vValue] == 0:
+				hValue = l.left()
+				if bool3_str[hValue] == 0:
+					lFlag = True
+			else:
+				rFlag = False
+				vFlag = True
+
+		if rFlag == True and lFlag == False and vFlag == True:
+			print(3)
+			hValue = l.left()
+			if bool3_str[hValue] == 0:
+				lFlag = True
+			else:
+				vFlag = False
+
+		###
+		if rFlag == True and lFlag == True and vFlag == True:
+			print(5)
+			rFlag = False
+			vFlag = False
+			lFlag = False
+
+		###
+		if rFlag == True and lFlag == True and vFlag == False:
+			print(4)
+			vValue = l.move()
+			if bool3_str[vValue] == 0:
+				hValue = l.right()
+				if bool3_str[hValue] == 0:
+					rFlag = True
+			else:
+				lFlag = False
+				vFlag = True
+
+		it += 1
 
 
 if __name__ == '__main__':
@@ -158,4 +231,9 @@ if __name__ == '__main__':
 	print('robPos:', '[', l.robotPosI, '][', l.robotPosJ, ']', '\n')
 	print_laby(l.labymap)
 	print()
-	algo(l)
+	try:
+		algo_(l)
+	except RecursionError:
+		print('\n\nINF RECURSION!!!')
+	except EOFError:
+		print('Alles gut')

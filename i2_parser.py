@@ -396,6 +396,14 @@ def p_ifcond_error1(p):
 	p[0] = ('ERR', 'SYNT: TERRIBLE ERROR IN "IF SENTENCE" at line %s' % p.lineno(1))
 
 
+def p_ifcond_error2(p):
+	'''ifcond : IF expr THEN error
+			  | IF expr THEN sentence ELSE error
+			  | IF expr THEN sentgroup ELSE error'''
+	p.parser.error += 1
+	p[0] = ('ERR', 'SYNT: BAD LOGIC CONDITIONS IN "IF SENTENCE" at line %s' % p.lineno(1))
+
+
 def p_vectelem(p):
 	'''vectelem : ids dimensions'''
 	p[0] = ('VECTEL', p[1], p[2])
@@ -500,7 +508,7 @@ def p_callfunc_sizeof_2(p):
 
 
 def p_callfunc_sizeof_error(p):
-	'''callfunc : SIZEOF LPAREN error RPAREN'''
+	'''callfunc : SIZEOF error '''
 	p.parser.error += 1
 	p[0] = ('ERR', 'SYNT: BAD FUNC "sizeof" CALL PARAMS at line %s' % p.lineno(1))
 
@@ -552,9 +560,10 @@ if __name__ == '__main__':
 
 	lexer = lex.lex(module=i2_lexer)
 	print()
+	filename0 = 'laby_algo.i2'
 	filename1 = 'simple_test.i2'
 	filename5 = 'simple_factorial.i2'
-	data = open(filename1).read()
+	data = open(filename0).read()
 	lexx(lexer, data)
 	print()
 	prog = parse(data, 1)

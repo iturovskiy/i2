@@ -1,19 +1,15 @@
 function work()
 begin
-    int aba set 10, abc set 5;
-    bool qoob set true;
-    bool sol set fun(aba 3 5 smaller 3 add 1);
-    print sol;
-    return sol;
+    bool rf set False, lf set False, vF set False;
+    bool qqq set (rf smaller 0) and (lf smaller 0) and (vf smaller 0);
+    bool hv set right;
+    if rf then
+        print 1;
+    else
+        print 2;
 end;
 
 
-function fun(int A, int B, bool C)
-begin
-    int Q set A add B;
-    bool D set (Q smaller 10);
-    return D;
-end;
 
 
 function infrec(int A)

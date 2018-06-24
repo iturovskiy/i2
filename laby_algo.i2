@@ -1,0 +1,110 @@
+function work()
+begin
+    return escape();
+end;
+
+function escape()
+begin
+    bool rFlag set False, lFlag set False, vFlag set False;
+    bool vValue set Undefined, hValue set Undefined;
+    bool expr;
+    int iter set 0;
+    do
+    begin
+
+        if ((rf smaller 0) and (lf smaller 0) and (vf smaller 0)) then
+        begin
+            hv set right;
+            if (hv larger False) and (hv smaller True) then
+                rf set True;
+        end;
+
+
+        if ((rf smaller 0) and (lf smaller 0) and (vf larger 0)) then
+        begin
+            hv set right;
+
+            expr set (hv larger False) and (hv smaller True);
+            vf set False;
+            if expr then
+            begin
+                vf set True;
+                rf set True;
+            end
+            else
+                vf set False;
+        end;
+
+
+        if ((rf larger 0) and (lf smaller 0) and (vf smaller 0)) then
+        begin
+            vv set move;
+            expr set (vv larger False) and (vv smaller True);
+            rf set False;
+            vf set True;
+
+            if expr then
+            begin
+                hv set left;
+                if (hv larger False) and (hv smaller True) then
+                    lf set True;
+
+                rf set True;
+                vf set False;
+            end
+            else
+            begin
+                rf set False;
+                vf set True;
+            end;
+        end;
+
+        if ((rf larger 0) and (lf smaller 0) and (vf larger 0)) then
+        begin
+            hv set left;
+            expr set (hv larger False) and (hv smaller True);
+            vf set False;
+
+            if expr then
+            begin
+                vf set True;
+                lf set True;
+            end
+            else
+                vf set False;
+        end;
+
+        if ((rf larger 0) and (lf larger 0) and (vf larger 0)) then
+        begin
+            rf set False;
+            vf set False;
+            lf set False;
+        end;
+
+        if ((rf larger 0) and (lf larger 0) and (vf smaller 0)) then
+        begin
+            vv set move;
+            expr set (vv larger False) and (vv smaller True);
+            lf set False;
+            vf set True;
+
+            if expr then
+            begin
+                hv set right;
+                if (hv larger False) and (hv smaller True) then
+                    rf set True;
+
+                lf set True;
+                vf set False;
+            end
+            else
+            begin
+                lf set False;
+                vf set True;
+            end;
+        end;
+
+    end
+    while True;
+    return 1;
+end;

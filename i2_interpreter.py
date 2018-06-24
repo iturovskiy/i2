@@ -5,7 +5,7 @@ from numpy import array
 from labyrinth import Labyrinth
 
 MAX_SHORT = 2 ** 10
-MAX_INT = 2 ** 15
+MAX_INT = 2 ** 13
 
 SO_INT = 4
 SO_SHORT = 2
@@ -24,7 +24,8 @@ ERROR_LIST = (
 	'Ошибка # 9: Обращение к неинициализированной переменной.',
 	'Ошибка # 10: Переполнение.',
 	'Ошибка # 11: Дистигнута максимальная глубина рекурсии.',
-	'Ошибка # 12: Вызванная функция ничего не вернула.'
+	'Ошибка # 12: Вызванная функция ничего не вернула.',
+	'Ошибка # 13: Видимо бесконечный цикл.',
 )
 
 def ternary_AND(tup1, tup2):
@@ -516,16 +517,34 @@ class Interpreter:
 						vectv = self._exps(expression[2], varsDict)
 						if vectv[0] == 'BOOL':
 							return self._exps(('SHORT', SO_BOOL), varsDict, expected_type)
+
 						elif vectv[0] == 'INT':
 							return self._exps(('SHORT', SO_INT), varsDict, expected_type)
+
 						elif vectv[0] == 'SHORT':
 							return self._exps(('SHORT', SO_SHORT), varsDict, expected_type)
+
 					elif expression[2][0] == 'INT':
 						return self._exps(('SHORT', SO_INT), varsDict, expected_type)
+
 					elif expression[2][0] == 'SHORT':
 						return self._exps(('SHORT', SO_SHORT), varsDict, expected_type)
+
 					elif expression[2][0] == 'BOOL':
 						return self._exps(('SHORT', SO_BOOL), varsDict, expected_type)
+
+					elif expression[2][0] == 'VECTOR':
+						size = make_size(expression[2][1])
+						if vectv[0] == 'BOOL':
+							size *= SO_BOOL
+
+						elif vectv[0] == 'INT':
+							size *= SO_INT
+
+						elif vectv[0] == 'SHORT':
+							size *= SO_SHORT
+
+						return self._exps(('SHORT', size), varsDict, expected_type)
 			else:
 				if expression[1][1] in self.prog:
 					paramz = []
@@ -555,13 +574,21 @@ class Interpreter:
 		elif expression[0] == 'OPERATOR':
 			if self.isLabyrinthInit:
 				if expression[1] == 'move':
-					return self._exps(('BOOL', self.labyrinth.move()), varsDict, expected_type)
+					val = self.labyrinth.move()
+					return self._exps(('BOOL', val), varsDict, expected_type)
+
 				elif expression[1] == 'left':
-					return self._exps(('BOOL', self.labyrinth.left()), varsDict, expected_type)
+					val = self.labyrinth.left()
+					return self._exps(('BOOL', val), varsDict, expected_type)
+
 				elif expression[1] == 'right':
-					return self._exps(('BOOL', self.labyrinth.right()), varsDict, expected_type)
+					val = self.labyrinth.right()
+					return self._exps(('BOOL', val), varsDict, expected_type)
+
 				elif expression[1] == 'lms':
-					return self._exps(('SHORT', self.labyrinth.lms()), varsDict, expected_type)
+					val = self.labyrinth.lms()
+					return self._exps(('SHORT', val), varsDict, expected_type)
+
 			else:
 				print('Ошибка # 0:' + ERROR_LIST[0][15:43])
 				raise RuntimeError
@@ -592,7 +619,9 @@ class Interpreter:
 			vec.flat[index] = exps
 
 	def _do_while(self, sentence, varsDict):
-		while True:
+		flag = 1
+		good = False
+		while flag < MAX_INT:
 			if sentence[1][0] == 'SENTGROUP':
 				retval = self._sentencess(sentence[1][1], varsDict)
 			else:
@@ -601,7 +630,13 @@ class Interpreter:
 				return retval
 			cond = self._exps(sentence[2], varsDict, 'BOOL')
 			if cond[1] != 'true':
+				good = True
 				break
+			flag += 1
+
+		if not good:
+			print(ERROR_LIST[13])
+			raise RuntimeError
 
 	def _ifcond(self, sentence, varsDict):
 		cond = self._exps(sentence[1], varsDict, 'BOOL')
@@ -612,10 +647,11 @@ class Interpreter:
 			else:
 				retval = self._sentencess([sentence[2]], varsDict)
 		elif cond[1] == 'false':
-			if sentence[3][0] == 'SENTGROUP':
-				retval = self._sentencess(sentence[3][1], varsDict)
-			else:
-				retval = self._sentencess([sentence[3]], varsDict)
+			if sentence[3] is not None:
+				if sentence[3][0] == 'SENTGROUP':
+					retval = self._sentencess(sentence[3][1], varsDict)
+				else:
+					retval = self._sentencess([sentence[3]], varsDict)
 		if retval is not None:
 			return retval
 
