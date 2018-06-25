@@ -1,12 +1,15 @@
-# -*- coding: utf-8 -*-
+ # -*- coding: utf-8 -*-
 
 from re import sub
 
 import ply.lex as lex
 
 keywords = {
-	'smaller': 'SMALLER',
-	'larger': 'LARGER',
+	'smaller' : 'SMALLER',
+	'larger' : 'LARGER',
+	'first'  : 'FIRST',
+	'second' : 'SECOND',
+	
 	'not': 'NOT',
 	'or': 'OR',
 	'and': 'AND',

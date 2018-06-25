@@ -397,11 +397,9 @@ def p_ifcond_error1(p):
 
 
 def p_ifcond_error2(p):
-	'''ifcond : IF expr THEN error
-			  | IF expr THEN sentence ELSE error
-			  | IF expr THEN sentgroup ELSE error'''
+	'''ifcond : IF expr error'''
 	p.parser.error += 1
-	p[0] = ('ERR', 'SYNT: BAD LOGIC CONDITIONS IN "IF SENTENCE" at line %s' % p.lineno(1))
+	p[0] = ('ERR', 'SYNT: BAD IN "IF SENTENCE" at line %s' % p.lineno(1))
 
 
 def p_vectelem(p):
@@ -465,14 +463,48 @@ def p_expr_arithm(p):
 
 
 def p_expr_logic(p):
-	'''expr : expr SMALLER expr
-			| expr LARGER expr
-			| expr AND expr
+	'''expr : expr AND expr
 			| expr OR expr
 			| expr nand expr
 			| expr nor expr'''
 	p[0] = ('LOGEXP', p[1], p[2], p[3])
 
+
+# def p_expr_logicOld(p):
+# 	'''expr : expr SMALLER expr
+# 			| expr LARGER expr'''
+# 	p[0] = ('LOGEXP', p[1], p[2], p[3])
+
+######################################################################
+
+def p_expr_logicNew(p):
+	'''expr : fsmaller expr expr
+			| flarger expr expr
+			| ssmaller expr expr
+			| slarger expr expr'''
+	p[0] = ('LOGEXP', p[1] ,p[2], p[3])
+
+
+def p_fsmaller(p):
+	'''fsmaller : FIRST SMALLER'''
+	p[0] = 'FSMALLER'
+
+
+def p_flarger(p):
+	'''flarger : FIRST LARGER'''
+	p[0] = 'FLARGER'
+
+
+def p_ssmaller(p):
+	'''ssmaller : SECOND SMALLER'''
+	p[0] = 'SSMALLER'
+
+
+def p_slarger(p):
+	'''slarger : SECOND LARGER'''
+	p[0] = 'SLARGER'
+
+####################################################################
 
 def p_nand(p):
 	'''nand : NOT AND'''

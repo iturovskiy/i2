@@ -9,6 +9,7 @@ begin
             F2 set fsu;
             i set i add 1;
         end
-    while i smaller n;
+    while first smaller i n;
     print fs;
+    return fs;
 end;

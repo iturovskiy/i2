@@ -1,19 +1,9 @@
 function work()
 begin
-    bool rf set False, lf set False, vF set False;
-    bool qqq set (rf smaller 0) and (lf smaller 0) and (vf smaller 0);
-    bool hv set right;
-    if rf then
-        print 1;
-    else
-        print 2;
+    ids;
 end;
 
-
-
-
-function infrec(int A)
+function work1()
 begin
-    print A;
-    infrec(A add 1);
+    ids;
 end;

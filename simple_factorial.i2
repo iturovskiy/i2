@@ -1,6 +1,7 @@
 function work()
 begin
-    print factorial(4);
+    int q set factorial(5);
+    return q;
 end;
 
 
@@ -13,7 +14,7 @@ begin
            N set N add A;
            i set i add 1;
         end
-    while (i smaller B);
+    while (first smaller i B);
     return N;
 end;
 
@@ -21,8 +22,8 @@ end;
 function factorial(int N)
 begin
     print N;
-    bool c1 set N larger 0, c2 set N larger 1;
-    if (c1 smaller 0) or (c2 smaller 1) then
+    bool c1 set first larger N 0, c2 set first larger N 1;
+    if (first smaller c1 0) or (first smaller c2 1) then
         return 1;
     return mult(N factorial(N sub 1));
 end;

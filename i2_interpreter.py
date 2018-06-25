@@ -398,9 +398,14 @@ class Interpreter:
 			if fl_None:
 				expected_type = 'BOOL'
 
-			if expression[2] == 'smaller':
-				par1 = self._exps(expression[1], varsDict, 'INT')
+			if expression[1] == 'FSMALLER':
+				par1 = self._exps(expression[2], varsDict, 'INT')
 				par2 = self._exps(expression[3], varsDict, 'INT')
+
+				if par1[0] == 'BOOL':
+					par1 = logic_to_arithm(par1)
+				if par2[0] == 'BOOL':
+					par2 = logic_to_arithm(par2)
 
 				if par1[1] < par2[1]:
 					return self._exps(('BOOL', 'true'), varsDict, expected_type)
@@ -409,8 +414,8 @@ class Interpreter:
 				elif par1[1] > par2[1]:
 					return self._exps(('BOOL', 'false'), varsDict, expected_type)
 
-			elif expression[2] == 'larger':
-				par1 = self._exps(expression[1], varsDict, 'INT')
+			if expression[1] == 'FLARGER':
+				par1 = self._exps(expression[2], varsDict, 'INT')
 				par2 = self._exps(expression[3], varsDict, 'INT')
 
 				if par1[0] == 'BOOL':
@@ -424,6 +429,74 @@ class Interpreter:
 					return self._exps(('BOOL', 'undefined'), varsDict, expected_type)
 				elif par1[1] < par2[1]:
 					return self._exps(('BOOL', 'false'), varsDict, expected_type)
+
+			if expression[1] == 'SSMALLER':
+				par1 = self._exps(expression[2], varsDict, 'INT')
+				par2 = self._exps(expression[3], varsDict, 'INT')
+
+				if par1[0] == 'BOOL':
+					par1 = logic_to_arithm(par1)
+				if par2[0] == 'BOOL':
+					par2 = logic_to_arithm(par2)
+
+				if par2[1] < par1[1]:
+					return self._exps(('BOOL', 'true'), varsDict, expected_type)
+				elif par2[1] == par1[1]:
+					return self._exps(('BOOL', 'undefined'), varsDict, expected_type)
+				elif par2[1] > par1[1]:
+					return self._exps(('BOOL', 'false'), varsDict, expected_type)
+
+			if expression[1] == 'SLARGER':
+				par1 = self._exps(expression[2], varsDict, 'INT')
+				par2 = self._exps(expression[3], varsDict, 'INT')
+
+				if par1[0] == 'BOOL':
+					par1 = logic_to_arithm(par1)
+				if par2[0] == 'BOOL':
+					par2 = logic_to_arithm(par2)
+
+				if par2[1] > par1[1]:
+					return self._exps(('BOOL', 'true'), varsDict, expected_type)
+				elif par2[1] == par1[1]:
+					return self._exps(('BOOL', 'undefined'), varsDict, expected_type)
+				elif par2[1] < par1[1]:
+					return self._exps(('BOOL', 'false'), varsDict, expected_type)
+
+			#############################################################################
+
+			# if expression[2] == 'smaller':
+			# 	par1 = self._exps(expression[1], varsDict, 'INT')
+			# 	par2 = self._exps(expression[3], varsDict, 'INT')
+			#
+			# 	if par1[0] == 'BOOL':
+			# 		par1 = logic_to_arithm(par1)
+			# 	if par2[0] == 'BOOL':
+			# 		par2 = logic_to_arithm(par2)
+			#
+			# 	if par1[1] < par2[1]:
+			# 		return self._exps(('BOOL', 'true'), varsDict, expected_type)
+			# 	elif par1[1] == par2[1]:
+			# 		return self._exps(('BOOL', 'undefined'), varsDict, expected_type)
+			# 	elif par1[1] > par2[1]:
+			# 		return self._exps(('BOOL', 'false'), varsDict, expected_type)
+			#
+			# elif expression[2] == 'larger':
+			# 	par1 = self._exps(expression[1], varsDict, 'INT')
+			# 	par2 = self._exps(expression[3], varsDict, 'INT')
+			#
+			# 	if par1[0] == 'BOOL':
+			# 		par1 = logic_to_arithm(par1)
+			# 	if par2[0] == 'BOOL':
+			# 		par2 = logic_to_arithm(par2)
+			#
+			# 	if par1[1] > par2[1]:
+			# 		return self._exps(('BOOL', 'true'), varsDict, expected_type)
+			# 	elif par1[1] == par2[1]:
+			# 		return self._exps(('BOOL', 'undefined'), varsDict, expected_type)
+			# 	elif par1[1] < par2[1]:
+			# 		return self._exps(('BOOL', 'false'), varsDict, expected_type)
+
+			#############################################################################
 
 			par1 = self._exps(expression[1], varsDict, expected_type)
 			par2 = self._exps(expression[3], varsDict, expected_type)

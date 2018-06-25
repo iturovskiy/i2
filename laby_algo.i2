@@ -1,6 +1,7 @@
 function work()
 begin
-    return escape();
+    int rec set escape();
+    return rec;
 end;
 
 function escape()
@@ -12,19 +13,19 @@ begin
     do
     begin
 
-        if ((rf smaller 0) and (lf smaller 0) and (vf smaller 0)) then
+        if ((first smaller rf 0) and (first smaller lf 0) and (first smaller vf 0)) then
         begin
             hv set right;
-            if (hv larger False) and (hv smaller True) then
+            if (first larger hv False) and (first smaller hv True) then
                 rf set True;
         end;
 
 
-        if ((rf smaller 0) and (lf smaller 0) and (vf larger 0)) then
+        if ((first smaller rf 0) and (first smaller lf 0) and (first larger vf 0)) then
         begin
             hv set right;
 
-            expr set (hv larger False) and (hv smaller True);
+            expr set (first larger hv False) and (first smaller hv True);
             vf set False;
             if expr then
             begin
@@ -36,17 +37,17 @@ begin
         end;
 
 
-        if ((rf larger 0) and (lf smaller 0) and (vf smaller 0)) then
+        if ((first larger rf 0) and (first smaller lf 0) and (first smaller vf 0)) then
         begin
             vv set move;
-            expr set (vv larger False) and (vv smaller True);
+            expr set (first larger vv False) and (first smaller vv True);
             rf set False;
             vf set True;
 
             if expr then
             begin
                 hv set left;
-                if (hv larger False) and (hv smaller True) then
+                if (first larger hv False) and (first smaller hv True) then
                     lf set True;
 
                 rf set True;
@@ -59,10 +60,10 @@ begin
             end;
         end;
 
-        if ((rf larger 0) and (lf smaller 0) and (vf larger 0)) then
+        if ((first larger rf 0) and (first smaller lf 0) and (first larger vf 0)) then
         begin
             hv set left;
-            expr set (hv larger False) and (hv smaller True);
+            expr set (first larger hv False) and (first smaller hv True);
             vf set False;
 
             if expr then
@@ -74,24 +75,24 @@ begin
                 vf set False;
         end;
 
-        if ((rf larger 0) and (lf larger 0) and (vf larger 0)) then
+        if ((first larger rf 0) and (first larger lf 0) and (first larger vf 0)) then
         begin
             rf set False;
             vf set False;
             lf set False;
         end;
 
-        if ((rf larger 0) and (lf larger 0) and (vf smaller 0)) then
+        if ((first larger rf 0) and (first larger lf 0) and (first smaller vf 0)) then
         begin
             vv set move;
-            expr set (vv larger False) and (vv smaller True);
+            expr set (first larger vv False) and (first smaller vv True);
             lf set False;
             vf set True;
 
             if expr then
             begin
                 hv set right;
-                if (hv larger False) and (hv smaller True) then
+                if (first larger hv False) and (first smaller hv True) then
                     rf set True;
 
                 lf set True;
